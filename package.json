@@ -8,7 +8,7 @@
 	},
 	"dependencies": {
 		"@line/bot-sdk": "^10.2.0",
-		"axios": "^1.11.0",
+		"axios": "^1.13.5",
 		"cheerio": "^1.0.0-rc.12",
 		"dotenv": "^17.2.1",
 		"express": "^4.21.2",
