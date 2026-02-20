@@ -1,0 +1,17 @@
+{
+	"name": "mcut-menu",
+	"version": "1.0.0",
+	"description": "A script to fetch daily menus from MCUT elder website.",
+	"main": "bot.js",
+	"scripts": {
+		"start": "node bot.js"
+	},
+	"dependencies": {
+		"@line/bot-sdk": "^10.2.0",
+		"axios": "^1.11.0",
+		"cheerio": "^1.0.0-rc.12",
+		"dotenv": "^17.2.1",
+		"express": "^4.21.2",
+		"pdf-parse": "^1.1.1"
+	}
+}
