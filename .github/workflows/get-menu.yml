@@ -1,0 +1,33 @@
+name: Get Menu
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */3 * * *' 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Get meal menu
+      run: node crawler.js
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./data/menu/
+        cname: "mcut-menu-api.henrywu.tw"
+        keep_files: true
