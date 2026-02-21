@@ -139,22 +139,29 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 		body: {
 			type: 'box',
 			layout: 'vertical',
+			justifyContent: 'space-between',
 			contents: [
 				{
-					type: 'text',
-					text: `${restaurant.name} ${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
-					weight: 'bold',
-					align: 'center',
-					color: COLOR_TITLE,
-					wrap: true
-				},
-				{
-					type: 'text',
-					text: `${restaurant.location}・${meals[mealId].open_time} 供應`,
-					align: 'center',
-					color: COLOR_GRAY,
-					size: 'xxs',
-					margin: 'sm'
+					type: 'box',
+					layout: 'vertical',
+					contents: [
+						{
+							type: 'text',
+							text: `${restaurant.name} ${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
+							weight: 'bold',
+							align: 'center',
+							color: COLOR_TITLE,
+							wrap: true
+						},
+						{
+							type: 'text',
+							text: `${restaurant.location}・${meals[mealId].open_time} 供應`,
+							align: 'center',
+							color: COLOR_GRAY,
+							size: 'xxs',
+							margin: 'sm'
+						},
+					]
 				},
 				{
 					type: 'box',
@@ -186,7 +193,7 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 						[
 							{
 								type: 'box',
-								height: '160px',
+								height: '60px',
 								justifyContent: 'center',
 								layout: 'vertical',
 								contents: [
@@ -203,7 +210,7 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 				},
 				{
 					type: 'text',
-					text: '菜單僅供參考，實際供應內容以現場供應為準。\n輸入「設定」可以調整顯示方式。',
+					text: '菜單僅供參考，實際供應內容以現場為準。\n輸入「設定」可以調整顯示方式。',
 					color: COLOR_GRAY,
 					size: 'xxs',
 					margin: 'xl',
