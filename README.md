@@ -13,7 +13,9 @@
 ```
 https://mcut-menu-api.henrywu.tw/{YYYY}/{MM}/{DD}/{MEAL_ID}.json
 ```
-MEAL_ID：`1` = 早餐，`2` = 午餐，`3` = 晚餐
+
+- 可查詢的日期範圍：2013/04/01 ~ 今日 +7 天
+- MEAL_ID：`1` = 早餐，`2` = 午餐，`3` = 晚餐
 
 Response: 
 ```json
@@ -32,4 +34,8 @@ Response:
     ]
 }
 ```
-`menu_1` = 第一餐廳，`menu_2` = 第二餐廳
+
+- `menu_1` = 第一餐廳，`menu_2` = 第二餐廳
+
+## 資料來源
+http://elder.mcut.edu.tw/website1/
