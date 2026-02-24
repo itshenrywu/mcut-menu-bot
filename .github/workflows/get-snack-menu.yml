@@ -1,0 +1,72 @@
+name: Get Snack Menu
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0,2,4,6,8,10,12 * * *'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    outputs:
+      branch_exists: ${{ steps.check_step.outputs.exists }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check if branch exists
+      id: check_step
+      shell: bash
+      run: |
+        if git ls-remote --heads origin update-snack-menu | grep -q update-snack-menu; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
+  build:
+    needs: check
+
+    if: needs.check.outputs.branch_exists == 'false'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Get meal menu
+      id: get_menu
+      run: node crawler-snack.js
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: gh-pages-temp
+
+    - name: Move files
+      run: |
+        cp -R data/menu/. gh-pages-temp/
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: gh-pages-temp
+        branch: update-snack-menu
+        base: gh-pages
+        commit-message: "更新宵夜菜單"
+        title: "更新宵夜菜單"
+        body: ${{ steps.get_menu.outputs.body || '更新宵夜菜單' }}
+        delete-branch: true
