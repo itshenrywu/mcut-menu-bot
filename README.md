@@ -6,9 +6,6 @@
 - 查詢近七天內的菜單
 - 使用者可設定偏好顯示方式
 
-## To-do
-- 免費宵夜目前是靠人工從公告裡的 PDF 生出 JSON 後傳到 Prod Server，之後想做成可以自動 parse
-
 ## 菜單 API
 ```
 https://mcut-menu-api.henrywu.tw/{YYYY}/{MM}/{DD}/{MEAL_ID}.json
