@@ -8,11 +8,46 @@ const BASE_URL = 'http://elder.mcut.edu.tw/website1/'
 const INDEX_URL = BASE_URL + 'index.aspx'
 const REQUEST_TIMEOUT_MS = 30_000
 
+const RECENT_ONLY = process.argv.includes('recent-only')
+
 const headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
 }
 
 const axiosConfig = { headers, timeout: REQUEST_TIMEOUT_MS }
+
+const parseAnnouncementDate = (dateStr) => {
+	if (!dateStr) return null
+
+	const match = dateStr.match(/(\d{3,4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/)
+	if (!match) return null
+
+	let year = parseInt(match[1], 10)
+	const month = parseInt(match[2], 10)
+	const day = parseInt(match[3], 10)
+
+	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return null
+
+	if (year < 1000) {
+		year += 1911
+	}
+
+	return new Date(year, month - 1, day)
+}
+
+const isAnnouncementWithinDays = (dateStr, days = 3) => {
+	const date = parseAnnouncementDate(dateStr)
+	if (!date) return true
+
+	const now = new Date()
+	const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+	const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
+	const diffMs = Math.abs(startOfToday - target)
+	const limitMs = days * 24 * 60 * 60 * 1000
+
+	return diffMs <= limitMs
+}
 
 const parseAnnouncementTable = (html) => {
 	const $ = cheerio.load(html)
@@ -337,15 +372,27 @@ const fetchNightSnackAnnouncements = async (keyword = '夜點供應') => {
 
 const processAnnouncement = async () => {
 	const results = await fetchNightSnackAnnouncements('夜點供應')
+	const sourceResults = RECENT_ONLY
+		? results.filter(({ announcement }) =>
+				isAnnouncementWithinDays(announcement.startDate || announcement.endDate)
+			)
+		: results
+
+	if (RECENT_ONLY && sourceResults.length === 0) {
+		console.log('沒有三天內的夜點供應公告')
+		return []
+	}
+
 	const pdfUrls = []
 
-	for (const { attachments } of results) {
+	for (const { attachments } of sourceResults) {
 		for (const att of attachments) {
 			if (att.error || !att.menuByDates) continue
 			if (att.url) pdfUrls.push(att.url)
 
 			for (const { date, menu } of att.menuByDates) {
 				if (!date) continue
+				console.log(date)
 				const [y, m, d] = date.split('/')
 				const dir = path.join('data', 'menu', y, m, d)
 				await fs.mkdir(dir, { recursive: true })

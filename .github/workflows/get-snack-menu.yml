@@ -47,19 +47,24 @@ jobs:
 
     - name: Get meal menu
       id: get_menu
-      run: node crawler-snack.js
+      env:
+        MODE: ${{ github.event_name != 'workflow_dispatch' && 'recent-only' || '' }}
+      run: node crawler-snack.js $MODE
 
     - name: Checkout
+      if: ${{ steps.get_menu.outputs.body != '' }}
       uses: actions/checkout@v4
       with:
         ref: gh-pages
         path: gh-pages-temp
 
     - name: Move files
+      if: ${{ steps.get_menu.outputs.body != '' }}
       run: |
         cp -R data/menu/. gh-pages-temp/
 
     - name: Create Pull Request
+      if: ${{ steps.get_menu.outputs.body != '' }}
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
