@@ -135,11 +135,18 @@ app.post('/webhook', webhookLimiter, line.middleware(config), (req, res) => {
 	})
 })
 
-function dateStr(date, show_weekday=0) {
-	return `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}` + (show_weekday ? ` (${['日','一','二','三','四','五','六'][date.getDay()]})` : '')
+const toYYYYMMDD = (date) => {
+	return `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`
 }
 
-function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
+const toSlashFormat = (input) => {
+	if (input instanceof Date) {
+		return `${input.getFullYear()}/${(input.getMonth() + 1).toString().padStart(2, '0')}/${input.getDate().toString().padStart(2, '0')}`
+	}
+	return `${String(input).slice(0, 4)}/${String(input).slice(4, 6)}/${String(input).slice(6, 8)}`
+}
+
+const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 	return {
 		type: 'bubble',
 		body: {
@@ -153,7 +160,7 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 					contents: [
 						{
 							type: 'text',
-							text: `${restaurant.name} ${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
+							text: `${restaurant.name} ${date.getFullYear() == new Date().getFullYear() ? '' : `${date.getFullYear().toString().slice(2, 4)}/`}${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}`,
 							weight: 'bold',
 							align: 'center',
 							color: COLOR_TITLE,
@@ -181,7 +188,7 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 								type: 'box',
 								layout: 'vertical',
 								contents: [
-									(row.type && row.type != '主食') ? {
+									(row.type && menu[`menu_${restaurant.id}`].length > 1) ? {
 										type: 'text',
 										text: row.type,
 										size: 'sm',
@@ -227,7 +234,7 @@ function getRestaurantMenuFlex(menu, date, mealId, restaurant) {
 	}
 }
 
-function getUserSettingFlex(user_setting) {
+const getUserSettingFlex = (user_setting) => {
 	return {
 		type: 'flex',
 		altText: '偏好設定',
@@ -389,8 +396,60 @@ function getUserSettingFlex(user_setting) {
 	}
 }
 
-async function getMenuFromFile(date, mealId) {
-	const menu_path = `data/menu/${dateStr(date)}/${mealId}.json`
+const workingDaysCache = {}
+
+const fetchWorkingDaysFromAPI = async (year) => {
+	const url = `https://mcut-menu-api.henrywu.tw/${year}/working-day.json`
+	const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
+	if (!res.ok) throw new Error(`Failed to fetch working days: ${res.status}`)
+	const data = await res.json()
+	if (!Array.isArray(data)) throw new Error('Invalid working days format')
+	return data
+}
+
+const getWorkingDaysForYear = async (year) => {
+	const today = toYYYYMMDD(new Date())
+	const cached = workingDaysCache[year]
+	if (cached && cached.fetchedDate === today) {
+		return cached.list
+	}
+	const list = await fetchWorkingDaysFromAPI(year)
+	workingDaysCache[year] = { list, fetchedDate: today }
+	return list
+}
+
+const getAdjacentWorkingDays = async (date) => {
+	const compactDate = toYYYYMMDD(date)
+	const year = date.getFullYear()
+	const years = [year]
+	if (date.getMonth() === 11 && date.getDate() >= 28) years.push(year + 1)
+	if (date.getMonth() === 0 && date.getDate() <= 3) years.unshift(year - 1)
+
+	let allWorkingDays = []
+	for (const y of years) {
+		try {
+			const list = await getWorkingDaysForYear(y)
+			allWorkingDays = allWorkingDays.concat(list)
+		} catch (e) {
+			console.error(e)
+			return {
+				next: toSlashFormat(new Date(date.getTime() + ONE_DAY)),
+				previous: toSlashFormat(new Date(date.getTime() - ONE_DAY))
+			}
+		}
+	}
+	allWorkingDays.sort()
+
+	const nextStr = allWorkingDays.find((d) => d > compactDate)
+	const prevStr = [...allWorkingDays].reverse().find((d) => d < compactDate)
+	return {
+		next_day: nextStr ? toSlashFormat(nextStr) : null,
+		prev_day: prevStr ? toSlashFormat(prevStr) : null
+	}
+}
+
+const getMenuFromFile = async (date, mealId) => {
+	const menu_path = `data/menu/${toSlashFormat(date)}/${mealId}.json`
 	try {
 		const stat = await fsPromises.stat(menu_path)
 		if ((new Date().getTime() - stat.mtime.getTime()) < ONE_HOUR) {
@@ -403,10 +462,10 @@ async function getMenuFromFile(date, mealId) {
 	return false
 }
 
-async function getMenuFromAPI(date, mealId) {
-	const menu_path = `data/menu/${dateStr(date)}/${mealId}.json`
+const getMenuFromAPI = async (date, mealId) => {
+	const menu_path = `data/menu/${toSlashFormat(date)}/${mealId}.json`
 	try {
-		const res = await fetch(`https://mcut-menu-api.henrywu.tw/${dateStr(date)}/${mealId}.json`, {
+		const res = await fetch(`https://mcut-menu-api.henrywu.tw/${toSlashFormat(date)}/${mealId}.json`, {
 			signal: AbortSignal.timeout(5000)
 		})
 		if (res.ok) {
@@ -427,7 +486,7 @@ async function getMenuFromAPI(date, mealId) {
 	}
 }
 
-async function handleEvent(event) {
+const handleEvent = async (event) => {
 	const userId = event.source?.userId
 	if (!userId || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
 		return Promise.resolve(null)
@@ -573,22 +632,18 @@ async function handleEvent(event) {
 
 		let has_snack = false
 		try {
-			await fsPromises.access(`data/menu/${dateStr(date)}/4.json`)
+			await fsPromises.access(`data/menu/${toSlashFormat(date)}/4.json`)
 			has_snack = true
 		} catch (e) {
 			if (e.code !== 'ENOENT') throw e
 		}
 
 		const is_today = new Date().toDateString() == date.toDateString()
-		const prev_day = dateStr(new Date(date.getTime() - ONE_DAY))
-		const next_day = dateStr(new Date(date.getTime() + ONE_DAY))
+		const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 
 		let menu_image_url = 'menu'
 		if( has_snack) {
 			menu_image_url += '_snack'
-		}
-		else if( (date.getTime() - new Date().getTime()) < -7 * ONE_DAY ) {
-			menu_image_url += '_no_prev'
 		}
 		else if( (date.getTime() - new Date().getTime()) > 7 * ONE_DAY ) {
 			menu_image_url += '_no_next'
@@ -630,7 +685,7 @@ async function handleEvent(event) {
 					actions: [
 						{
 							type: 'message',
-							text: `${is_today ? '' : `${dateStr(date)} `}早餐`,
+							text: `${is_today ? '' : `${toSlashFormat(date)} `}早餐`,
 							area: {
 								x: has_snack ? 44 : 173,
 								y: 0,
@@ -640,7 +695,7 @@ async function handleEvent(event) {
 						},
 						{
 							type: 'message',
-							text: `${is_today ? '' : `${dateStr(date)} `}午餐`,
+							text: `${is_today ? '' : `${toSlashFormat(date)} `}午餐`,
 							area: {
 								x: has_snack ? 302 : 432,
 								y: 0,
@@ -650,7 +705,7 @@ async function handleEvent(event) {
 						},
 						{
 							type: 'message',
-							text: `${is_today ? '' : `${dateStr(date)} `}晚餐`,
+							text: `${is_today ? '' : `${toSlashFormat(date)} `}晚餐`,
 							area: {
 								x: has_snack ? 561 : 688,
 								y: 0,
@@ -660,7 +715,7 @@ async function handleEvent(event) {
 						},
 						has_snack ? {
 							type: 'message',
-							text: `${is_today ? '' : `${dateStr(date)} `}宵夜`,
+							text: `${is_today ? '' : `${toSlashFormat(date)} `}宵夜`,
 							area: {
 								x: 821,
 								y: 0,
