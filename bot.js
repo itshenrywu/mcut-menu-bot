@@ -9,6 +9,7 @@ app.set('trust proxy', 1)
 const path = require('path')
 const fs = require('fs')
 const fsPromises = require('fs/promises')
+const { createCanvas, loadImage, registerFont } = require('canvas')
 
 const ONE_DAY = 86400000
 const ONE_HOUR = 3600000
@@ -111,9 +112,42 @@ const setting_options_display_order = [
 	}
 ]
 
+const toShortDate = (str) => {
+	if(!/^\d+$/.test(str)) return null
+	if(str?.length == 8) {
+		str = str.slice(-4)
+	}
+	if(str?.length != 4) return null
+	return `${parseInt(str.slice(0, 2))}/${parseInt(str.slice(2, 4))}`
+}
+
+registerFont('./fonts/NotoSansTC-Regular.ttf', { family: 'NotoSansTC' })
 fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file => {
-	app.get(`/image/${file.split('.')[0]}/:size(\\d+)`, (req, res) => { res.sendFile(path.join(__dirname, 'public', 'multi_size_image', file)) })
+	app.get([
+		`/image/${file.split('.')[0]}/:size(\\d+)`,
+		`/image/${file.split('.')[0]}/:prev/:next/:size(\\d+)`
+	], async (req, res) => {
+		const prev = '« ' + (toShortDate(req.params.prev) || '前一天')
+		const next = (toShortDate(req.params.next) || '後一天') + ' »'
+		const baseImage = await loadImage(`./public/multi_size_image/${file.split('.')[0]}.png`)
+		const canvas = createCanvas(baseImage.width, baseImage.height)
+		const ctx = canvas.getContext('2d')
+		ctx.drawImage(baseImage, 0, 0)
+	
+		ctx.font = '38px NotoSansTC'
+		ctx.fillStyle = '#34495e'
+		ctx.textAlign = 'center'
+		ctx.textBaseline = 'middle'
+		ctx.fillText(prev, 248, 135)
+		if(file.split('.')[0].includes('no_next')) {
+			ctx.fillStyle = '#838c95'
+		}
+		ctx.fillText(next, 792, 135)
+		res.setHeader('Content-Type', 'image/png')
+		canvas.createPNGStream().pipe(res)
+	})
 })
+
 fs.readdirSync(path.join(__dirname, 'public', 'image')).forEach(file => {
 	app.get(`/image/${file}`, (req, res) => { res.sendFile(path.join(__dirname, 'public', 'image', file)) })
 })
@@ -645,7 +679,7 @@ const handleEvent = async (event) => {
 		if( has_snack) {
 			menu_image_url += '_snack'
 		}
-		else if( (date.getTime() - new Date().getTime()) > 7 * ONE_DAY ) {
+		if( (date.getTime() - new Date().getTime()) > 7 * ONE_DAY ) {
 			menu_image_url += '_no_next'
 		}
 
@@ -676,7 +710,10 @@ const handleEvent = async (event) => {
 				...messages,
 				{
 					type: 'imagemap',
-					baseUrl: `${process.env.URL}/image/${menu_image_url}/`,
+					baseUrl: new URL(
+						`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
+						process.env.URL
+					).toString(),
 					altText: `${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
 					baseSize: {
 						width: 1040,
@@ -723,7 +760,7 @@ const handleEvent = async (event) => {
 								height: 70
 							}
 						} : null,
-						menu_image_url != 'menu_no_prev' ? {
+						{
 							type: 'message',
 							text: `${prev_day} ${meals[mealId].name}`,
 							area: {
@@ -732,7 +769,7 @@ const handleEvent = async (event) => {
 								width: 225,
 								height: 70
 							}
-						} : null,
+						},
 						{
 							type: 'message',
 							text: meals[mealId].name,
