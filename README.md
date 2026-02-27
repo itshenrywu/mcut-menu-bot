@@ -5,6 +5,7 @@
 ## 功能
 - 查詢近七天內的菜單
 - 使用者可設定偏好顯示方式
+- 前一天/後一天的按鈕會顯示前一個/後一個上班日（使用 [ruyut/TaiwanCalendar](https://github.com/ruyut/TaiwanCalendar)）
 
 ## 菜單 API
 ```
@@ -14,7 +15,7 @@ https://mcut-menu-api.henrywu.tw/{YYYY}/{MM}/{DD}/{MEAL_ID}.json
 - 可查詢的日期範圍：2013/04/01 ~ 今日 +7 天
 - MEAL_ID：`1` = 早餐，`2` = 午餐，`3` = 晚餐
 
-Response: 
+### 回應格式 
 ```json
 {
     "menu_1": [
