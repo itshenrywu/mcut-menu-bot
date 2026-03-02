@@ -3,7 +3,7 @@ name: Get Snack Menu
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0,2,4,6,8,10,12 * * *'
+    - cron: '15 0,2,4,6,8,10,12 * * *'
 
 jobs:
   check:
