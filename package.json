@@ -13,7 +13,7 @@
 		"cheerio": "^1.0.0-rc.12",
 		"dotenv": "^17.2.1",
 		"express": "^4.22.1",
-		"express-rate-limit": "^8.2.1",
+		"express-rate-limit": "^8.2.2",
 		"pdf-parse": "^2.4.5"
 	}
 }
