@@ -14,12 +14,16 @@ const { createCanvas, loadImage, registerFont } = require('canvas')
 const ONE_DAY = 86400000
 const ONE_HOUR = 3600000
 
-const COLOR_PRIMARY = '#3498db'
-const COLOR_TITLE = '#2c3e50'
-const COLOR_SUBTITLE = '#34495e'
-const COLOR_GRAY = '#7f8c8d'
-const COLOR_RED = '#e74c3c'
-const COLOR_LIGHT_GRAY = '#ecf0f1'
+const getColors = (isDark) => ({
+	PRIMARY: '#3498db',
+	TITLE: isDark ? '#e8ecef' : '#2c3e50',
+	SUBTITLE: isDark ? '#a9b4bf' : '#34495e',
+	GRAY: isDark ? '#8fa3b1' : '#7f8c8d',
+	RED: '#e74c3c',
+	RADIO_BG: isDark ? '#2c3e50' : '#ecf0f1',
+	RADIO_UNSELECTED: isDark ? '#ffffff55' : '#ffffff',
+	BG: isDark ? '#1c2026' : null,
+})
 
 const meals = {
 	1: {
@@ -81,6 +85,17 @@ const setting_options_display_order = [
 	{
 		label: '第二餐廳 → 第一餐廳',
 		value: '2_1'
+	}
+]
+
+const setting_options_dark_mode = [
+	{
+		label: '淺色模式',
+		value: 'off'
+	},
+	{
+		label: '深色模式',
+		value: 'on'
 	}
 ]
 
@@ -152,9 +167,10 @@ const toSlashFormat = (input) => {
 	return `${String(input).slice(0, 4)}/${String(input).slice(4, 6)}/${String(input).slice(6, 8)}`
 }
 
-const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
+const getRestaurantMenuFlex = (menu, date, mealId, restaurant, colors) => {
 	return {
 		type: 'bubble',
+		...(colors.BG ? { styles: { body: { backgroundColor: colors.BG } } } : {}),
 		body: {
 			type: 'box',
 			layout: 'vertical',
@@ -169,14 +185,14 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 							text: `${restaurant.name} ${date.getFullYear() == new Date().getFullYear() ? '' : `${date.getFullYear().toString().slice(2, 4)}/`}${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}`,
 							weight: 'bold',
 							align: 'center',
-							color: COLOR_TITLE,
+							color: colors.TITLE,
 							wrap: true
 						},
 						{
 							type: 'text',
 							text: `${restaurant.location}・${meals[mealId].open_time} 供應`,
 							align: 'center',
-							color: COLOR_GRAY,
+							color: colors.GRAY,
 							size: 'xxs',
 							margin: 'sm'
 						},
@@ -198,13 +214,14 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 										type: 'text',
 										text: row.type,
 										size: 'sm',
-										color: COLOR_SUBTITLE
+										color: colors.SUBTITLE
 									} : null,
 									{
 										type: 'text',
 										text: row.foods,
 										wrap: true,
-										size: 'xs'
+										size: 'xs',
+										color: colors.TITLE
 									}
 								].filter(i => i !== null)
 							}
@@ -220,7 +237,7 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 										type: 'text',
 										text: mealId == 4 ? '今日未提供段考週免費宵夜' : '廠商尚未上傳菜單',
 										size: 'sm',
-										color: COLOR_RED,
+										color: colors.RED,
 										align: 'center'
 									}
 								]
@@ -229,8 +246,8 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 				},
 				{
 					type: 'text',
-					text: '菜單僅供參考，實際供應內容以現場為準。\n輸入「設定」可以調整顯示方式。',
-					color: COLOR_GRAY,
+					text: '菜單僅供參考，實際供應內容以現場為準。\n輸入「設定」可以調整顯示方式/餐廳順序/主題。',
+					color: colors.GRAY,
 					size: 'xxs',
 					margin: 'xl',
 					wrap: true
@@ -241,11 +258,61 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant) => {
 }
 
 const getUserSettingFlex = (user_setting) => {
+	const isDark = user_setting.dark_mode === 'on'
+	const colors = getColors(isDark)
+
+	const makeRadioRow = (options, currentValue, postbackKey) => ({
+		type: 'box',
+		layout: 'vertical',
+		spacing: 'md',
+		contents: options.map(option => ({
+			type: 'box',
+			layout: 'horizontal',
+			action: {
+				type: 'postback',
+				label: '偏好設定',
+				data: postbackKey + '=' + option.value
+			},
+			alignItems: 'center',
+			spacing: 'md',
+			contents: [
+				{
+					type: 'box',
+					layout: 'vertical',
+					contents: [
+						{
+							type: 'box',
+							layout: 'vertical',
+							contents: [],
+							width: '8px',
+							height: '8px',
+							backgroundColor: currentValue == option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
+							cornerRadius: '8px'
+						}
+					],
+					width: '16px',
+					height: '16px',
+					backgroundColor: colors.RADIO_BG,
+					cornerRadius: '16px',
+					justifyContent: 'center',
+					alignItems: 'center'
+				},
+				{
+					type: 'text',
+					text: option.label,
+					size: 'xs',
+					color: colors.TITLE
+				}
+			]
+		}))
+	})
+
 	return {
 		type: 'flex',
 		altText: '偏好設定',
 		contents: {
 			type: 'bubble',
+			...(colors.BG ? { styles: { body: { backgroundColor: colors.BG } } } : {}),
 			body: {
 				type: 'box',
 				layout: 'vertical',
@@ -256,7 +323,7 @@ const getUserSettingFlex = (user_setting) => {
 						text: '偏好設定',
 						weight: 'bold',
 						align: 'center',
-						color: COLOR_TITLE
+						color: colors.TITLE
 					},
 					{
 						type: 'box',
@@ -267,67 +334,66 @@ const getUserSettingFlex = (user_setting) => {
 								type: 'text',
 								text: '顯示方式',
 								size: 'sm',
-								color: COLOR_SUBTITLE
+								color: colors.SUBTITLE
 							},
 							{
 								type: 'box',
 								layout: 'horizontal',
 								spacing: 'md',
-								contents: setting_options_display_type.map(option => {
-									return {
-										type: 'box',
-										layout: 'vertical',
-										action: {
-											type: 'postback',
-											label: '偏好設定',
-											data: 'display_type=' + option.value
+								contents: setting_options_display_type.map(option => ({
+									type: 'box',
+									layout: 'vertical',
+									action: {
+										type: 'postback',
+										label: '偏好設定',
+										data: 'display_type=' + option.value
+									},
+									flex: 1,
+									spacing: 'sm',
+									contents: [
+										{
+											type: 'image',
+											url: `${process.env.URL}/image/display_type_${option.value}.png?v=3`,
+											size: 'full',
+											aspectRatio: '1:1'
 										},
-										flex: 1,
-										spacing: 'sm',
-										contents: [
-											{
-												type: 'image',
-												url: `${process.env.URL}/image/display_type_${option.value}.png?v=3`,
-												size: 'full',
-												aspectRatio: '1:1'
-											},
-											{
-												type: 'box',
-												layout: 'horizontal',
-												alignItems: 'center',
-												spacing: 'md',
-												contents: [
-													{
-														type: 'box',
-														layout: 'vertical',
-														contents: [
-															{
-																type: 'box',
-																layout: 'vertical',
-																contents: [],
-																width: '8px',
-																height: '8px',
-																backgroundColor: user_setting.display_type == option.value ? COLOR_PRIMARY : '#ffffff',
-																cornerRadius: '8px'
-															}
-														],
-														width: '16px',
-														height: '16px',
-														backgroundColor: COLOR_LIGHT_GRAY,
-														cornerRadius: '16px',
-														justifyContent: 'center',
-														alignItems: 'center'
-													},
-													{
-														type: 'text',
-														text: option.label,
-														size: 'xs'
-													}
-												]
-											}
-										]
-									}
-								})
+										{
+											type: 'box',
+											layout: 'horizontal',
+											alignItems: 'center',
+											spacing: 'md',
+											contents: [
+												{
+													type: 'box',
+													layout: 'vertical',
+													contents: [
+														{
+															type: 'box',
+															layout: 'vertical',
+															contents: [],
+															width: '8px',
+															height: '8px',
+															backgroundColor: user_setting.display_type == option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
+															cornerRadius: '8px'
+														}
+													],
+													width: '16px',
+													height: '16px',
+													backgroundColor: colors.RADIO_BG,
+													cornerRadius: '16px',
+													justifyContent: 'center',
+													alignItems: 'center'
+												},
+												{
+													type: 'text',
+													text: option.label,
+													size: 'xs',
+													color: colors.TITLE
+												}
+											]
+										}
+									]
+								}))
 							}
 						]
 					},
@@ -338,62 +404,25 @@ const getUserSettingFlex = (user_setting) => {
 						contents: [
 							{
 								type: 'text',
-								text: '顯示順序',
+								text: '餐廳順序',
 								size: 'sm',
-								color: COLOR_SUBTITLE
+								color: colors.SUBTITLE
 							},
+							makeRadioRow(setting_options_display_order, user_setting.display_order, 'display_order')
+						]
+					},
+					{
+						type: 'box',
+						layout: 'vertical',
+						spacing: 'sm',
+						contents: [
 							{
-								type: 'box',
-								layout: 'vertical',
-								contents: [
-									{
-										type: 'box',
-										layout: 'vertical',
-										spacing: 'md',
-										contents: setting_options_display_order.map(option => {
-											return {
-												type: 'box',
-												layout: 'horizontal',
-												action: {
-													type: 'postback',
-													label: '偏好設定',
-													data: 'display_order=' + option.value
-												},
-												alignItems: 'center',
-												spacing: 'md',
-												contents: [
-													{
-														type: 'box',
-														layout: 'vertical',
-														contents: [
-															{
-																type: 'box',
-																layout: 'vertical',
-																contents: [],
-																width: '8px',
-																height: '8px',
-																backgroundColor: user_setting.display_order == option.value ? COLOR_PRIMARY : '#ffffff',
-																cornerRadius: '8px'
-															}
-														],
-														width: '16px',
-														height: '16px',
-														backgroundColor: '#ecf0f1',
-														cornerRadius: '16px',
-														justifyContent: 'center',
-														alignItems: 'center'
-													},
-													{
-														type: 'text',
-														text: option.label,
-														size: 'xs'
-													}
-												]
-											}
-										}),
-									}
-								]
-							}
+								type: 'text',
+								text: '主題',
+								size: 'sm',
+								color: colors.SUBTITLE
+							},
+							makeRadioRow(setting_options_dark_mode, user_setting.dark_mode, 'dark_mode')
 						]
 					}
 				]
@@ -465,10 +494,6 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 	let menu_image_url = 'menu'
 	if (has_snack) menu_image_url += '_snack'
 	if ((date.getTime() - new Date().getTime()) > 7 * ONE_DAY) menu_image_url += '_no_next'
-	console.log(new URL(
-		`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
-		process.env.URL
-	).toString())
 	return {
 		type: 'imagemap',
 		baseUrl: new URL(
@@ -587,6 +612,7 @@ const handleEvent = async (event) => {
 	}
 	user_setting.display_type = user_setting.display_type || 'horizontal'
 	user_setting.display_order = user_setting.display_order || '1_2'
+	user_setting.dark_mode = user_setting.dark_mode || 'off'
 
 	if (event.type === 'follow') {
 		return client.replyMessage({
@@ -605,6 +631,10 @@ const handleEvent = async (event) => {
 		}
 		else if (data.length >= 2 && data[0] == 'display_order' && setting_options_display_order.some(option => option.value == data[1])) {
 			user_setting.display_order = data[1]
+			await fsPromises.writeFile(user_setting_path, JSON.stringify(user_setting))
+		}
+		else if (data.length >= 2 && data[0] == 'dark_mode' && setting_options_dark_mode.some(option => option.value == data[1])) {
+			user_setting.dark_mode = data[1]
 			await fsPromises.writeFile(user_setting_path, JSON.stringify(user_setting))
 		}
 		return client.replyMessage({
@@ -702,6 +732,9 @@ const handleEvent = async (event) => {
 		const is_today = new Date().toDateString() == date.toDateString()
 		const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 
+		const colors = getColors(user_setting.dark_mode === 'on')
+		const orderedRestaurants = user_setting.display_order == '2_1' ? [...restaurants].reverse() : restaurants
+
 		let messages = []
 		if(user_setting.display_type == 'horizontal') {
 			messages = [{
@@ -709,18 +742,16 @@ const handleEvent = async (event) => {
 				altText: '學餐菜單',
 				contents: {
 					type: 'carousel',
-					contents: (user_setting.display_order == '2_1' ? [...restaurants].reverse() : restaurants).map(restaurant => getRestaurantMenuFlex(menu, date, mealId, restaurant))
+					contents: orderedRestaurants.map(restaurant => getRestaurantMenuFlex(menu, date, mealId, restaurant, colors))
 				}
 			}]
 		}
 		else {
-			messages = (user_setting.display_order == '2_1' ? [...restaurants].reverse() : restaurants).map(restaurant => {
-				return {
-					type: 'flex',
-					altText: '學餐菜單',
-					contents: getRestaurantMenuFlex(menu, date, mealId, restaurant)
-				}
-			})
+			messages = orderedRestaurants.map(restaurant => ({
+				type: 'flex',
+				altText: '學餐菜單',
+				contents: getRestaurantMenuFlex(menu, date, mealId, restaurant, colors)
+			}))
 		}
 
 		return client.replyMessage({
