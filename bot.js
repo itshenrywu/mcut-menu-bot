@@ -540,7 +540,7 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 				text: meals[mealId].name,
 				area: { x: 426, y: 102, width: 187, height: 70 }
 			},
-			menu_image_url !== 'menu_no_next' ? {
+			!menu_image_url.includes('no_next') ? {
 				type: 'message',
 				text: `${next_day} ${meals[mealId].name}`,
 				area: { x: 682, y: 102, width: 225, height: 70 }
