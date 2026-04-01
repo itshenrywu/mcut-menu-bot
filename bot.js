@@ -17,8 +17,8 @@ const ONE_HOUR = 3600000
 const getColors = (isDark) => ({
 	PRIMARY: '#3498db',
 	TITLE: isDark ? '#e8ecef' : '#2c3e50',
-	SUBTITLE: isDark ? '#a9b4bf' : '#34495e',
-	GRAY: isDark ? '#8fa3b1' : '#7f8c8d',
+	SUBTITLE: isDark ? '#b1bbc5' : '#34495e',
+	GRAY: isDark ? '#9aacb8' : '#7f8c8d',
 	RED: '#e74c3c',
 	RADIO_BG: isDark ? '#2c3e50' : '#ecf0f1',
 	RADIO_UNSELECTED: isDark ? '#ffffff55' : '#ffffff',
@@ -110,24 +110,26 @@ const toShortDate = (str) => {
 
 registerFont('./fonts/NotoSansTC-Regular.ttf', { family: 'NotoSansTC' })
 fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file => {
+	const baseName = file.split('.')[0]
+	const isDarkImage = baseName.includes('_dark')
 	app.get([
-		`/image/${file.split('.')[0]}/:size(\\d+)`,
-		`/image/${file.split('.')[0]}/:prev/:next/:size(\\d+)`
+		`/image/${baseName}/:size(\\d+)`,
+		`/image/${baseName}/:prev/:next/:size(\\d+)`
 	], async (req, res) => {
 		const prev = '« ' + (toShortDate(req.params.prev) || '前一天')
 		const next = (toShortDate(req.params.next) || '後一天') + ' »'
-		const baseImage = await loadImage(`./public/multi_size_image/${file.split('.')[0]}.png`)
+		const baseImage = await loadImage(`./public/multi_size_image/${baseName}.png`)
 		const canvas = createCanvas(baseImage.width, baseImage.height)
 		const ctx = canvas.getContext('2d')
 		ctx.drawImage(baseImage, 0, 0)
-	
+
 		ctx.font = '38px NotoSansTC'
-		ctx.fillStyle = '#34495e'
+		ctx.fillStyle = isDarkImage ? '#a0a6ac' : '#34495e'
 		ctx.textAlign = 'center'
 		ctx.textBaseline = 'middle'
 		ctx.fillText(prev, 248, 135)
-		if(file.split('.')[0].includes('no_next')) {
-			ctx.fillStyle = '#838c95'
+		if(baseName.includes('no_next')) {
+			ctx.fillStyle = isDarkImage ? '#505560' : '#838c95'
 		}
 		ctx.fillText(next, 792, 135)
 		res.setHeader('Content-Type', 'image/png')
@@ -490,10 +492,11 @@ const getCurrentMealId = () => {
 	return 3
 }
 
-const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_today) => {
+const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_today, isDark = false) => {
 	let menu_image_url = 'menu'
 	if (has_snack) menu_image_url += '_snack'
 	if ((date.getTime() - new Date().getTime()) > 7 * ONE_DAY) menu_image_url += '_no_next'
+	if (isDark) menu_image_url += '_dark'
 	return {
 		type: 'imagemap',
 		baseUrl: new URL(
@@ -545,7 +548,7 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 	}
 }
 
-const getDefaultNavImagemap = async () => {
+const getDefaultNavImagemap = async (isDark = false) => {
 	const date = new Date()
 	const mealId = getCurrentMealId()
 	let has_snack = false
@@ -556,7 +559,7 @@ const getDefaultNavImagemap = async () => {
 		if (e.code !== 'ENOENT') throw e
 	}
 	const { prev_day, next_day } = await getAdjacentWorkingDays(date)
-	return buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, true)
+	return buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, true, isDark)
 }
 
 const getMenuFromFile = async (date, mealId) => {
@@ -613,13 +616,14 @@ const handleEvent = async (event) => {
 	user_setting.display_type = user_setting.display_type || 'horizontal'
 	user_setting.display_order = user_setting.display_order || '1_2'
 	user_setting.dark_mode = user_setting.dark_mode || 'off'
+	const isDark = user_setting.dark_mode === 'on'
 
 	if (event.type === 'follow') {
 		return client.replyMessage({
 			replyToken: event.replyToken,
 			messages: [
 				welcome_message,
-				await getDefaultNavImagemap()
+				await getDefaultNavImagemap(isDark)
 			]
 		})
 	}
@@ -671,7 +675,7 @@ const handleEvent = async (event) => {
 				replyToken: event.replyToken,
 				messages: [
 					welcome_message,
-					await getDefaultNavImagemap()
+					await getDefaultNavImagemap(isDark)
 				]
 			})
 		}
@@ -684,7 +688,7 @@ const handleEvent = async (event) => {
 						type: 'text',
 						text: '你到底想查哪個啦？',
 					},
-					await getDefaultNavImagemap()
+					await getDefaultNavImagemap(isDark)
 				]
 			})
 		}
@@ -732,7 +736,7 @@ const handleEvent = async (event) => {
 		const is_today = new Date().toDateString() == date.toDateString()
 		const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 
-		const colors = getColors(user_setting.dark_mode === 'on')
+		const colors = getColors(isDark)
 		const orderedRestaurants = user_setting.display_order == '2_1' ? [...restaurants].reverse() : restaurants
 
 		let messages = []
@@ -758,7 +762,7 @@ const handleEvent = async (event) => {
 			replyToken: event.replyToken,
 			messages: [
 				...messages,
-				buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, is_today)
+				buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, is_today, isDark)
 			]
 		})
 	}
