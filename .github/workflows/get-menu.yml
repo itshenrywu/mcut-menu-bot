@@ -22,7 +22,7 @@ jobs:
       run: npm install
 
     - name: Get meal menu
-      run: node crawler.js
+      run: node crawler/crawler.js
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3

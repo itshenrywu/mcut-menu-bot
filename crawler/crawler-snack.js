@@ -394,7 +394,7 @@ const processAnnouncement = async () => {
 				if (!date) continue
 				console.log(date)
 				const [y, m, d] = date.split('/')
-				const dir = path.join('data', 'menu', y, m, d)
+				const dir = path.join(__dirname, '..', 'data', 'menu', y, m, d)
 				await fs.mkdir(dir, { recursive: true })
 				const filePath = path.join(dir, '4.json')
 				await fs.writeFile(filePath, JSON.stringify(menu))

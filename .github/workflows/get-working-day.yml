@@ -23,10 +23,10 @@ jobs:
 
     - name: Get working day (current year)
       if: github.event_name == 'workflow_dispatch'
-      run: node working-day.js
+      run: node crawler/working-day.js
 
     - name: Get working day (last year)
-      run: node working-day.js $(($(date +%Y) - 1))
+      run: node crawler/working-day.js $(($(date +%Y) - 1))
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
