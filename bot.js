@@ -59,35 +59,7 @@ const restaurants = [
 
 const welcome_message = {
 	type: 'text',
-	text: '請輸入 早餐、午餐、或 晚餐 以查詢菜單',
-	quickReply: {
-		items: [
-			{
-				type: 'action',
-				action: {
-					type: 'message',
-					label: '早餐',
-					text: '早餐'
-				}
-			},
-			{
-				type: 'action',
-				action: {
-					type: 'message',
-					label: '午餐',
-					text: '午餐'
-				}
-			},
-			{
-				type: 'action',
-				action: {
-					type: 'message',
-					label: '晚餐',
-					text: '晚餐'
-				}
-			},
-		]
-	}
+	text: '請選擇要查詢的菜單',
 }
 
 const setting_options_display_type = [
@@ -482,6 +454,86 @@ const getAdjacentWorkingDays = async (date) => {
 	}
 }
 
+const getCurrentMealId = () => {
+	const time = new Date().getHours() * 100 + new Date().getMinutes()
+	if (time < 900) return 1
+	if (time < 1300) return 2
+	return 3
+}
+
+const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_today) => {
+	let menu_image_url = 'menu'
+	if (has_snack) menu_image_url += '_snack'
+	if ((date.getTime() - new Date().getTime()) > 7 * ONE_DAY) menu_image_url += '_no_next'
+	console.log(new URL(
+		`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
+		process.env.URL
+	).toString())
+	return {
+		type: 'imagemap',
+		baseUrl: new URL(
+			`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
+			process.env.URL
+		).toString(),
+		altText: `${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
+		baseSize: {
+			width: 1040,
+			height: 180
+		},
+		actions: [
+			{
+				type: 'message',
+				text: `${is_today ? '' : `${toSlashFormat(date)} `}早餐`,
+				area: { x: has_snack ? 44 : 173, y: 0, width: 179, height: 70 }
+			},
+			{
+				type: 'message',
+				text: `${is_today ? '' : `${toSlashFormat(date)} `}午餐`,
+				area: { x: has_snack ? 302 : 432, y: 0, width: 179, height: 70 }
+			},
+			{
+				type: 'message',
+				text: `${is_today ? '' : `${toSlashFormat(date)} `}晚餐`,
+				area: { x: has_snack ? 561 : 688, y: 0, width: 179, height: 70 }
+			},
+			has_snack ? {
+				type: 'message',
+				text: `${is_today ? '' : `${toSlashFormat(date)} `}宵夜`,
+				area: { x: 821, y: 0, width: 179, height: 70 }
+			} : null,
+			{
+				type: 'message',
+				text: `${prev_day} ${meals[mealId].name}`,
+				area: { x: 127, y: 102, width: 225, height: 70 }
+			},
+			{
+				type: 'message',
+				text: meals[mealId].name,
+				area: { x: 426, y: 102, width: 187, height: 70 }
+			},
+			menu_image_url !== 'menu_no_next' ? {
+				type: 'message',
+				text: `${next_day} ${meals[mealId].name}`,
+				area: { x: 682, y: 102, width: 225, height: 70 }
+			} : null,
+		].filter(i => i !== null)
+	}
+}
+
+const getDefaultNavImagemap = async () => {
+	const date = new Date()
+	const mealId = getCurrentMealId()
+	let has_snack = false
+	try {
+		await fsPromises.access(`data/menu/${toSlashFormat(date)}/4.json`)
+		has_snack = true
+	} catch (e) {
+		if (e.code !== 'ENOENT') throw e
+	}
+	const { prev_day, next_day } = await getAdjacentWorkingDays(date)
+	return buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, true)
+}
+
 const getMenuFromFile = async (date, mealId) => {
 	const menu_path = `data/menu/${toSlashFormat(date)}/${mealId}.json`
 	try {
@@ -540,7 +592,8 @@ const handleEvent = async (event) => {
 		return client.replyMessage({
 			replyToken: event.replyToken,
 			messages: [
-				welcome_message
+				welcome_message,
+				await getDefaultNavImagemap()
 			]
 		})
 	}
@@ -587,7 +640,8 @@ const handleEvent = async (event) => {
 			return client.replyMessage({
 				replyToken: event.replyToken,
 				messages: [
-					welcome_message
+					welcome_message,
+					await getDefaultNavImagemap()
 				]
 			})
 		}
@@ -599,35 +653,8 @@ const handleEvent = async (event) => {
 					{
 						type: 'text',
 						text: '你到底想查哪個啦？',
-						quickReply: {
-							items: [
-								{
-									type: 'action',
-									action: {
-										type: 'message',
-										label: '早餐',
-										text: '早餐'
-									}
-								},
-								{
-									type: 'action',
-									action: {
-										type: 'message',
-										label: '午餐',
-										text: '午餐'
-									}
-								},
-								{
-									type: 'action',
-									action: {
-										type: 'message',
-										label: '晚餐',
-										text: '晚餐'
-									}
-								},
-							]
-						}
-					}
+					},
+					await getDefaultNavImagemap()
 				]
 			})
 		}
@@ -675,14 +702,6 @@ const handleEvent = async (event) => {
 		const is_today = new Date().toDateString() == date.toDateString()
 		const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 
-		let menu_image_url = 'menu'
-		if( has_snack) {
-			menu_image_url += '_snack'
-		}
-		if( (date.getTime() - new Date().getTime()) > 7 * ONE_DAY ) {
-			menu_image_url += '_no_next'
-		}
-
 		let messages = []
 		if(user_setting.display_type == 'horizontal') {
 			messages = [{
@@ -708,90 +727,7 @@ const handleEvent = async (event) => {
 			replyToken: event.replyToken,
 			messages: [
 				...messages,
-				{
-					type: 'imagemap',
-					baseUrl: new URL(
-						`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
-						process.env.URL
-					).toString(),
-					altText: `${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
-					baseSize: {
-						width: 1040,
-						height: 180
-					},
-					actions: [
-						{
-							type: 'message',
-							text: `${is_today ? '' : `${toSlashFormat(date)} `}早餐`,
-							area: {
-								x: has_snack ? 44 : 173,
-								y: 0,
-								width: 179,
-								height: 70
-							}
-						},
-						{
-							type: 'message',
-							text: `${is_today ? '' : `${toSlashFormat(date)} `}午餐`,
-							area: {
-								x: has_snack ? 302 : 432,
-								y: 0,
-								width: 179,
-								height: 70
-							}
-						},
-						{
-							type: 'message',
-							text: `${is_today ? '' : `${toSlashFormat(date)} `}晚餐`,
-							area: {
-								x: has_snack ? 561 : 688,
-								y: 0,
-								width: 179,
-								height: 70
-							}
-						},
-						has_snack ? {
-							type: 'message',
-							text: `${is_today ? '' : `${toSlashFormat(date)} `}宵夜`,
-							area: {
-								x: 821,
-								y: 0,
-								width: 179,
-								height: 70
-							}
-						} : null,
-						{
-							type: 'message',
-							text: `${prev_day} ${meals[mealId].name}`,
-							area: {
-								x: 127,
-								y: 102,
-								width: 225,
-								height: 70
-							}
-						},
-						{
-							type: 'message',
-							text: meals[mealId].name,
-							area: {
-								x: 426,
-								y: 102,
-								width: 187,
-								height: 70
-							}
-						},
-						menu_image_url != 'menu_no_next' ? {
-							type: 'message',
-							text: `${next_day} ${meals[mealId].name}`,
-							area: {
-								x: 682,
-								y: 102,
-								width: 225,
-								height: 70
-							}
-						} : null,
-					].filter(i => i !== null)
-				}
+				buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, is_today)
 			]
 		})
 	}
