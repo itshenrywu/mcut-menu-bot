@@ -124,7 +124,7 @@ fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file 
 		ctx.drawImage(baseImage, 0, 0)
 
 		ctx.font = '38px NotoSansTC'
-		ctx.fillStyle = isDarkImage ? '#a0a6ac' : '#34495e'
+		ctx.fillStyle = isDarkImage ? '#f5f6f6' : '#34495e'
 		ctx.textAlign = 'center'
 		ctx.textBaseline = 'middle'
 		ctx.fillText(prev, 248, 135)
@@ -497,12 +497,13 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 	if (has_snack) menu_image_url += '_snack'
 	if ((date.getTime() - new Date().getTime()) > 7 * ONE_DAY) menu_image_url += '_no_next'
 	if (isDark) menu_image_url += '_dark'
+	const imagemapBaseUrl = new URL(
+		`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
+		process.env.URL
+	)
 	return {
 		type: 'imagemap',
-		baseUrl: new URL(
-			`image/${menu_image_url}/${prev_day?.replace(/\//g, '') || '0'}/${next_day?.replace(/\//g, '') || '0'}`,
-			process.env.URL
-		).toString(),
+		baseUrl: imagemapBaseUrl.toString(),
 		altText: `${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}菜單`,
 		baseSize: {
 			width: 1040,
