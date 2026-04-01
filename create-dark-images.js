@@ -14,7 +14,7 @@ const LIGHT_FG        = [44,  62,  80]  // #2c3e50  圖示/文字
 // 深色模式目標顏色
 const DARK_BG         = [28,  32,  38]  // #1c2026  深色背景 (與 getColors BG 一致)
 const DARK_NAV_BG     = [32,  36,  40]  // #202428  導覽區深色背景 (中性深灰，無藍色調)
-const DARK_FG         = [160, 166, 172] // #a0a6ac  圖示/文字 (中性淺灰，深色背景上可讀)
+const DARK_FG         = [245, 246, 246] // #f5f6f6  圖示/文字 (近白色，深色背景上高對比)
 
 const lerp = (a, b, t) => Math.round(a + (b - a) * t)
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
