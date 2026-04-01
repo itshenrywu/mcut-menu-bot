@@ -72,7 +72,7 @@ const fetchAndProcessMeal = async (date, mealId) => {
 			menu_2: menu2
 		}
 
-		const outputDir = 'data/menu/' + cookieDate
+		const outputDir = path.join(__dirname, '..', 'data', 'menu', cookieDate)
 		await fs.mkdir(outputDir, { recursive: true })
 
 		const filePath = path.join(outputDir, `${mealId}.json`)

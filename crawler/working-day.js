@@ -14,7 +14,7 @@ const fetchWorkdays = async (year) => {
 }
 
 const getWorkingDays = async (year) => {
-	const outputDir = path.join(__dirname, 'data', 'menu', String(year))
+	const outputDir = path.join(__dirname, '..', 'data', 'menu', String(year))
 	const outputPath = path.join(outputDir, 'working-day.json')
 
 	const workdays = await fetchWorkdays(year)

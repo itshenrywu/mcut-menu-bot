@@ -49,7 +49,7 @@ jobs:
       id: get_menu
       env:
         MODE: ${{ github.event_name != 'workflow_dispatch' && 'recent-only' || '' }}
-      run: node crawler-snack.js $MODE
+      run: node crawler/crawler-snack.js $MODE
 
     - name: Checkout
       if: ${{ steps.get_menu.outputs.body != '' }}
