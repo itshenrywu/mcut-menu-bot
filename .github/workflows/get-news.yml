@@ -1,9 +1,7 @@
-name: Get Working Day
+name: Get News
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 14 1 7 *'
 
 jobs:
   build:
@@ -21,12 +19,8 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Get working day (current year)
-      if: github.event_name == 'workflow_dispatch'
-      run: node crawler/working-day.js
-
-    - name: Get working day (last year)
-      run: node crawler/working-day.js $(($(date +%Y) - 1))
+    - name: Get news
+      run: node crawler/news.js
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3

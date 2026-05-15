@@ -38,31 +38,29 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
 
     - name: Install dependencies
       run: npm install
 
-    - name: Get meal menu
-      id: get_menu
-      env:
-        MODE: ${{ github.event_name != 'workflow_dispatch' && 'recent-only' || '' }}
-      run: node crawler/crawler-snack.js $MODE
+    - name: Get snack menu
+      id: get_snack_menu
+      run: node crawler/snack.js $MODE
 
     - name: Checkout
-      if: ${{ steps.get_menu.outputs.body != '' }}
+      if: ${{ steps.get_snack_menu.outputs.body != '' }}
       uses: actions/checkout@v4
       with:
         ref: gh-pages
         path: gh-pages-temp
 
     - name: Move files
-      if: ${{ steps.get_menu.outputs.body != '' }}
+      if: ${{ steps.get_snack_menu.outputs.body != '' }}
       run: |
         cp -R data/menu/. gh-pages-temp/
 
     - name: Create Pull Request
-      if: ${{ steps.get_menu.outputs.body != '' }}
+      if: ${{ steps.get_snack_menu.outputs.body != '' }}
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,5 +69,5 @@ jobs:
         base: gh-pages
         commit-message: "更新宵夜菜單"
         title: "更新宵夜菜單"
-        body: ${{ steps.get_menu.outputs.body || '更新宵夜菜單' }}
+        body: ${{ steps.get_snack_menu.outputs.body || '更新宵夜菜單' }}
         delete-branch: true

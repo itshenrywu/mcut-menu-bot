@@ -14,13 +14,13 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'
+        node-version: '22'
 
     - name: Install dependencies
       run: npm install
 
     - name: Get meal menu
-      run: node crawler/crawler.js
+      run: node crawler/menu.js
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
