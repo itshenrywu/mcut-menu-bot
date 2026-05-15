@@ -248,7 +248,7 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant, colors) => {
 				},
 				{
 					type: 'text',
-					text: '菜單僅供參考，實際供應內容以現場為準。\n輸入「設定」可以調整顯示方式/餐廳順序/主題。',
+					text: '菜單僅供參考，實際供應內容以現場為準。',
 					color: colors.GRAY,
 					size: 'xxs',
 					margin: 'xl',
