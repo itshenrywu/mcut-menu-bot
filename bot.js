@@ -601,6 +601,107 @@ const getMenuFromAPI = async (date, mealId) => {
 	}
 }
 
+const fetchNewsFromAPI = async () => {
+	try {
+		const res = await fetch('https://mcut-menu-api.henrywu.tw/news.json', { signal: AbortSignal.timeout(5000) })
+		if (res.ok) {
+			const data = await res.json()
+			if (Array.isArray(data)) return data
+		}
+	} catch (e) {
+		console.error('fetchNewsFromAPI error', e)
+		return []
+	}
+}
+
+const buildNewsFlex = (newsList) => {
+	const items = Array.isArray(newsList) ? newsList.slice(0, 5) : []
+	if (items.length === 0) {
+		return {
+			type: 'text',
+			text: '目前沒有公告。'
+		}
+	}
+
+	return {
+		type: 'flex',
+		altText: '最新公告',
+		contents: {
+			type: 'carousel',
+			contents: items.map(item => {
+				const detail = item.detail || {}
+				const attachments = Array.isArray(detail.attachments) ? detail.attachments : []
+				const firstAttachment = attachments[0]
+				const bodyContents = [
+					{
+						type: 'text',
+						text: item.title || detail.title || '公告',
+						weight: 'bold',
+						size: 'md',
+						wrap: true
+					},
+					{
+						type: 'text',
+						text: item.startDate ? `公告時間：${item.startDate}` : '',
+						size: 'xs',
+						color: '#7f8c8d',
+						margin: 'sm'
+					},
+					{
+						type: 'text',
+						text: (detail.content || '').slice(0, 500),
+						wrap: true,
+						size: 'sm',
+						margin: 'sm'
+					}
+				]
+
+				const footerButtons = []
+				if (firstAttachment && firstAttachment.url) {
+					footerButtons.push({
+						type: 'button',
+						style: 'link',
+						action: {
+							type: 'uri',
+							label: firstAttachment.label || '下載檔案',
+							uri: firstAttachment.url
+						}
+					})
+				}
+				if (item.detailUrl) {
+					footerButtons.push({
+						type: 'button',
+						style: 'link',
+						action: {
+							type: 'uri',
+							label: '原公告連結',
+							uri: item.detailUrl
+						}
+					})
+				}
+
+				return {
+					type: 'bubble',
+					body: {
+						type: 'box',
+						layout: 'vertical',
+						spacing: 'sm',
+						contents: [
+							...bodyContents
+						]
+					},
+					footer: footerButtons.length > 0 ? {
+						type: 'box',
+						layout: 'horizontal',
+						spacing: 'sm',
+						contents: footerButtons
+					} : undefined
+				}
+			})
+		}
+	}
+}
+
 const handleEvent = async (event) => {
 	const userId = event.source?.userId
 	if (!userId || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
@@ -656,6 +757,15 @@ const handleEvent = async (event) => {
 				messages: [
 					getUserSettingFlex(user_setting)
 				]
+			})
+		}
+
+		if (event.message.text.includes('公告')) {
+			const news = await fetchNewsFromAPI()
+			const flex = buildNewsFlex(news)
+			return client.replyMessage({
+				replyToken: event.replyToken,
+				messages: Array.isArray(flex) ? flex : [flex]
 			})
 		}
 
