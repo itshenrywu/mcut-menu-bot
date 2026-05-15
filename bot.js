@@ -761,6 +761,10 @@ const handleEvent = async (event) => {
 		}
 
 		if (event.message.text.includes('公告')) {
+			await client.showLoadingAnimation({
+				chatId: userId,
+				loadingSeconds: 5 
+			})
 			const news = await fetchNewsFromAPI()
 			const flex = buildNewsFlex(news)
 			return client.replyMessage({
