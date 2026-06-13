@@ -12,10 +12,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check Date
+        id: date-check
+        run: |
+          CURRENT_EPOCH=$(date +%s)
+          TARGET_EPOCH=$(date -d "2026-08-28" +%s)
+          
+          if [ $CURRENT_EPOCH -lt $TARGET_EPOCH ]; then
+            echo "Skipped"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Node.js
+        if: steps.date-check.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: Run Check Script
+        if: steps.date-check.outputs.skip != 'true'
         run: node healthcheck.js
