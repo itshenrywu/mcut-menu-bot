@@ -6,7 +6,7 @@ const path = require('path')
 
 const BASE_URL = 'http://elder.mcut.edu.tw/website1/'
 const INDEX_URL = BASE_URL + 'index.aspx'
-const REQUEST_TIMEOUT_MS = 30_000
+const REQUEST_TIMEOUT_MS = 10_000
 
 const RECENT_ONLY = process.argv.includes('recent-only')
 

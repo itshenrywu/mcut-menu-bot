@@ -20,7 +20,7 @@ const main = async () => {
             const url = `https://mcut-menu-api.henrywu.tw/${datePath}/${meal}.json`
 
             try {
-                const response = await fetch(url)
+                const response = await fetch(url, { signal: AbortSignal.timeout(10_000) })
 
                 if (response.status === 200) {
                     const text = await response.text()

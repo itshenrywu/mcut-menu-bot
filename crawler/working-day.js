@@ -6,7 +6,7 @@ const CALENDAR_BASE = 'https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data'
 
 const fetchWorkdays = async (year) => {
 	const url = `${CALENDAR_BASE}/${year}.json`
-	const { data } = await axios.get(url)
+	const { data } = await axios.get(url, { timeout: 10_000 })
 	const workdays = data
 		.filter((item) => item.isHoliday === false)
 		.map((item) => item.date)

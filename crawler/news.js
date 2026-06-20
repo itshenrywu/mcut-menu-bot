@@ -5,7 +5,7 @@ const path = require('path')
 
 const BASE_URL = 'http://elder.mcut.edu.tw/website1/'
 const INDEX_URL = BASE_URL + 'index.aspx'
-const REQUEST_TIMEOUT_MS = 30_000
+const REQUEST_TIMEOUT_MS = 10_000
 
 const headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
