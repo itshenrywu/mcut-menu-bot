@@ -12,21 +12,30 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Check Date
+      id: date-check
+      run: bash .github/scripts/check-date.sh
+
     - name: Set up Node.js
+      if: steps.date-check.outputs.skip != 'true'
       uses: actions/setup-node@v3
       with:
         node-version: '22'
 
     - name: Install dependencies
+      if: steps.date-check.outputs.skip != 'true'
       run: npm install
 
     - name: Get meal menu
+      if: steps.date-check.outputs.skip != 'true'
       run: node crawler/menu.js
 
     - name: Get news
+      if: steps.date-check.outputs.skip != 'true'
       run: node crawler/news.js
 
     - name: Deploy to GitHub Pages
+      if: steps.date-check.outputs.skip != 'true'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

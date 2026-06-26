@@ -37,15 +37,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check Date
+      id: date-check
+      run: bash .github/scripts/check-date.sh
+
     - name: Set up Node.js
+      if: steps.date-check.outputs.skip != 'true'
       uses: actions/setup-node@v4
       with:
         node-version: '22'
 
     - name: Install dependencies
+      if: steps.date-check.outputs.skip != 'true'
       run: npm install
 
     - name: Get snack menu
+      if: steps.date-check.outputs.skip != 'true'
       id: get_snack_menu
       run: node crawler/snack.js $MODE
 
