@@ -71,10 +71,11 @@
     "endDate": "2026/12/31",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=963",
     "detail": {
-      "title": "【公告】115.4.23 (四) 校運會學生餐廳供餐時間說明",
-      "content": "1. 4/23(四)因配合校運會及園遊會活動，學生會已申請全校搭伙學生中午退伙並發放園遊券，因此學生餐廳午餐無開放學生用餐，亦無開放領取餐券，早、晚餐則正常供餐。 2. 當日協助校運會之工作人員請至第一餐廳2樓用餐，現場將有同學協助發放餐券。",
+      "title": "",
+      "content": "",
       "relatedUrl": "",
-      "attachments": []
+      "attachments": [],
+      "error": "timeout of 10000ms exceeded"
     }
   },
   {
@@ -95,16 +96,11 @@
     "endDate": "2027/04/01",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=961",
     "detail": {
-      "title": "【總務處伙食團公告】自115學年度起學生餐廳兌換券使用方式說明。",
-      "content": "自115學年度起學生餐廳兌換券使用方式調整說明如附檔，敬請配合。",
+      "title": "",
+      "content": "",
       "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "伙食團公告1150402-學生餐廳兌換券使用方式說明",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e4%bc%99%e9%a3%9f%e5%9c%98%e5%85%ac%e5%91%8a1150402-%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e5%85%8c%e6%8f%9b%e5%88%b8%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f%e8%aa%aa%e6%98%8e.pdf"
-        }
-      ]
+      "attachments": [],
+      "error": "timeout of 10000ms exceeded"
     }
   },
   {
@@ -113,16 +109,11 @@
     "endDate": "2026/12/31",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=960",
     "detail": {
-      "title": "114學年度第2學期學生退伙申請名單(115.03)第二次",
-      "content": "1.本次公告為114學年下學期115年3月份第二次申請退伙核准名單，如附件。 2.會計室約3週後將退伙費用匯入申請人郵局帳戶。",
+      "title": "",
+      "content": "",
       "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "學生退伙明細表-114學年度(下)-11503-2",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-114%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8b)-11503-2.pdf"
-        }
-      ]
+      "attachments": [],
+      "error": "timeout of 10000ms exceeded"
     }
   }
 ]
