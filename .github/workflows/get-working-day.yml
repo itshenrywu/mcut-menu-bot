@@ -23,6 +23,7 @@ jobs:
       run: npm install
 
     - name: Get working day (current year)
+      if: github.event_name == 'workflow_dispatch'
       run: node crawler/working-day.js
 
     - name: Get working day (next year)
