@@ -60,8 +60,8 @@ const fetchAndProcessMeal = async (date, mealId) => {
 
 	try {
 		const [response1, response2] = await Promise.all([
-			axios.get(BASE_URL + `?rt=st&ms=0${mealId}`, { headers, timeout: 10_000 }),
-			axios.get(BASE_URL + `?rt=nd&ms=0${mealId}`, { headers, timeout: 10_000 })
+			axios.get(BASE_URL + `?rt=st&ms=0${mealId}`, { headers, timeout: 15_000 }),
+			axios.get(BASE_URL + `?rt=nd&ms=0${mealId}`, { headers, timeout: 15_000 })
 		])
 
 		const menu1 = parseMenuHtml(response1.data)
