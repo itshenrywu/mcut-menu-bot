@@ -1,5 +1,33 @@
 [
   {
+    "title": "本校「中聯油脂案」清查情形。",
+    "startDate": "2026/07/09",
+    "endDate": "2027/02/28",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=969",
+    "detail": {
+      "title": "本校「中聯油脂案」清查情形。",
+      "content": "一、依據教育部來函請各校清查學生餐廳使用油品，倘查有使用受影響產品情形，請立即停止使用。 二、伙食團已盤點清查本校學生餐廳於學期中供餐用油皆非受影響之產品並已於衛福部系統回報。(廠商聲明書如附檔) 三、因目前為本校暑假期間無供餐，將於開學供餐前請廠商確認進貨品項及批號，並提供相關檢驗證明或聲明書後再行使用。",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "宏遠國際餐飲股份有限公司聲明書1150706",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ae%8f%e9%81%a0%e5%9c%8b%e9%9a%9b%e9%a4%90%e9%a3%b2%e8%82%a1%e4%bb%bd%e6%9c%89%e9%99%90%e5%85%ac%e5%8f%b8%e8%81%b2%e6%98%8e%e6%9b%b81150706.pdf"
+        },
+        {
+          "label": "檔案2下載",
+          "name": "福懋聲明稿",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e7%a6%8f%e6%87%8b%e8%81%b2%e6%98%8e%e7%a8%bf.pdf"
+        },
+        {
+          "label": "檔案3下載",
+          "name": "聲明書-20260701",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e8%81%b2%e6%98%8e%e6%9b%b8-20260701.pdf"
+        }
+      ]
+    }
+  },
+  {
     "title": "請大學四年級同學於115年07月01日至07月20日期間上網填寫115學年度第一學期搭伙意願",
     "startDate": "2026/07/01",
     "endDate": "2027/02/28",
@@ -99,24 +127,6 @@
       "content": "本校第一飲食部 (第一餐廳下方)業者因故，於115/4/23(四)-4/24(五)公休2日。",
       "relatedUrl": "",
       "attachments": []
-    }
-  },
-  {
-    "title": "【總務處伙食團公告】自115學年度起學生餐廳兌換券使用方式說明。",
-    "startDate": "2026/04/02",
-    "endDate": "2027/04/01",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=961",
-    "detail": {
-      "title": "【總務處伙食團公告】自115學年度起學生餐廳兌換券使用方式說明。",
-      "content": "自115學年度起學生餐廳兌換券使用方式調整說明如附檔，敬請配合。",
-      "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "伙食團公告1150402-學生餐廳兌換券使用方式說明",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e4%bc%99%e9%a3%9f%e5%9c%98%e5%85%ac%e5%91%8a1150402-%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e5%85%8c%e6%8f%9b%e5%88%b8%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f%e8%aa%aa%e6%98%8e.pdf"
-        }
-      ]
     }
   }
 ]
