@@ -2,6 +2,7 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const fs = require('fs').promises
 const path = require('path')
+const { isLocked } = require('./lock')
 
 const args = process.argv.slice(2)
 const start = args[0] ? parseInt(args[0], 10) : -7
@@ -51,6 +52,12 @@ const fetchAndProcessMeal = async (date, mealId) => {
 	const day = today.getDate().toString().padStart(2, '0')
 
 	const cookieDate = `${year}/${month}/${day}`
+	const relativePath = `${cookieDate}/${mealId}.json`
+
+	if (await isLocked(relativePath)) {
+		console.log(`🔒 ${relativePath} 已鎖定 (lock: true)，略過不覆蓋`)
+		return
+	}
 
 	const BASE_URL = 'http://elder.mcut.edu.tw/website1/showmenu.aspx'
 	const headers = {
