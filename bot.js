@@ -614,6 +614,66 @@ const fetchNewsFromAPI = async () => {
 	}
 }
 
+const getFileExtension = (url) => {
+	try {
+		const pathname = decodeURIComponent(new URL(url).pathname)
+		const base = pathname.split('/').pop() || ''
+		const idx = base.lastIndexOf('.')
+		if (idx > 0 && idx < base.length - 1) return base.slice(idx + 1).toLowerCase()
+	} catch (e) {
+		const match = /\.([a-zA-Z0-9]+)(?:[?#].*)?$/.exec(url)
+		if (match) return match[1].toLowerCase()
+	}
+	return ''
+}
+
+const fileIcons = {
+	pdf: '\u{1F4D5}',
+	doc: '\u{1F4D8}', docx: '\u{1F4D8}', odt: '\u{1F4D8}',
+	xls: '\u{1F4D7}', xlsx: '\u{1F4D7}', csv: '\u{1F4D7}', ods: '\u{1F4D7}',
+	ppt: '\u{1F4D9}', pptx: '\u{1F4D9}', odp: '\u{1F4D9}',
+	zip: '\u{1F5DC}', rar: '\u{1F5DC}', '7z': '\u{1F5DC}',
+	jpg: '\u{1F5BC}', jpeg: '\u{1F5BC}', png: '\u{1F5BC}', gif: '\u{1F5BC}', webp: '\u{1F5BC}',
+	txt: '\u{1F4C4}'
+}
+
+const buildAttachmentLabel = (attachment) => {
+	const ext = getFileExtension(attachment.url || '')
+	const name = attachment.name || attachment.label || '下載檔案'
+	return ext ? `${name}.${ext}` : name
+}
+
+const buildAttachmentBox = (attachment) => ({
+	type: 'box',
+	layout: 'horizontal',
+	spacing: 'sm',
+	margin: 'sm',
+	paddingAll: 'md',
+	cornerRadius: 'md',
+	backgroundColor: '#F2F4F7',
+	action: {
+		type: 'uri',
+		label: '下載檔案',
+		uri: attachment.url
+	},
+	contents: [
+		{
+			type: 'text',
+			text: fileIcons[getFileExtension(attachment.url || '')] || '\u{1F4CE}',
+			size: 'sm',
+			flex: 0
+		},
+		{
+			type: 'text',
+			text: buildAttachmentLabel(attachment),
+			size: 'sm',
+			color: '#1a6fd4',
+			wrap: true,
+			flex: 1
+		}
+	]
+})
+
 const buildNewsFlex = (newsList) => {
 	const items = Array.isArray(newsList) ? newsList.slice(0, 5) : []
 	if (items.length === 0) {
@@ -630,8 +690,7 @@ const buildNewsFlex = (newsList) => {
 			type: 'carousel',
 			contents: items.map(item => {
 				const detail = item.detail || {}
-				const attachments = Array.isArray(detail.attachments) ? detail.attachments : []
-				const firstAttachment = attachments[0]
+				const attachments = (Array.isArray(detail.attachments) ? detail.attachments : []).filter(attachment => attachment && attachment.url)
 				const bodyContents = [
 					{
 						type: 'text',
@@ -640,34 +699,39 @@ const buildNewsFlex = (newsList) => {
 						size: 'md',
 						wrap: true
 					},
-					{
+					...(item.startDate ? [{
 						type: 'text',
-						text: item.startDate ? `公告時間：${item.startDate}` : '',
+						text: `公告時間：${item.startDate}`,
 						size: 'xs',
 						color: '#7f8c8d',
 						margin: 'sm'
-					},
+					}] : []),
 					{
 						type: 'text',
-						text: (detail.content || '').slice(0, 500),
+						text: (detail.content || '').slice(0, 500) || '（無內容）',
 						wrap: true,
 						size: 'sm',
 						margin: 'sm'
 					}
 				]
 
-				const footerButtons = []
-				if (firstAttachment && firstAttachment.url) {
-					footerButtons.push({
-						type: 'button',
-						style: 'link',
-						action: {
-							type: 'uri',
-							label: firstAttachment.label || '下載檔案',
-							uri: firstAttachment.url
-						}
+				if (attachments.length > 0) {
+					bodyContents.push({
+						type: 'separator',
+						margin: 'lg'
 					})
+					bodyContents.push({
+						type: 'text',
+						text: `附件下載（${attachments.length}）`,
+						size: 'xs',
+						weight: 'bold',
+						color: '#7f8c8d',
+						margin: 'lg'
+					})
+					bodyContents.push(...attachments.map(buildAttachmentBox))
 				}
+
+				const footerButtons = []
 				if (item.detailUrl) {
 					footerButtons.push({
 						type: 'button',
@@ -692,7 +756,7 @@ const buildNewsFlex = (newsList) => {
 					},
 					footer: footerButtons.length > 0 ? {
 						type: 'box',
-						layout: 'horizontal',
+						layout: 'vertical',
 						spacing: 'sm',
 						contents: footerButtons
 					} : undefined
