@@ -1,5 +1,23 @@
 [
   {
+    "title": "115學年度第1學期學生退伙申請名單(115.09第一周)",
+    "startDate": "2026/09/11",
+    "endDate": "2027/01/31",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=974",
+    "detail": {
+      "title": "115學年度第1學期學生退伙申請名單(115.09第一周)",
+      "content": "1.本次公告為115學年上學期115年9月份第一周申請退伙核准名單，如附件。 2.會計室約3週後將退伙費用匯入申請人郵局帳戶。",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "學生退伙明細表-115學年度(上)-11509第一周",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-115%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8a)-11509%e7%ac%ac%e4%b8%80%e5%91%a8.pdf"
+        }
+      ]
+    }
+  },
+  {
     "title": "115.08.30(日)新生家長座談學生餐廳菜單",
     "startDate": "2026/08/28",
     "endDate": "2027/01/31",
@@ -113,24 +131,6 @@
           "label": "檔案1下載",
           "name": "學生退伙明細表-114學年度(下)-11505",
           "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-114%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8b)-11505.pdf"
-        }
-      ]
-    }
-  },
-  {
-    "title": "114學年度下學期(第2次)餐廳伙食檢體檢驗報告",
-    "startDate": "2026/05/15",
-    "endDate": "2026/12/15",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=966",
-    "detail": {
-      "title": "114學年度下學期(第2次)餐廳伙食檢體檢驗報告",
-      "content": "伙食團於115/5/5針對二家餐廳、販賣部、飲食部及咖啡廳抽檢伙食檢體送至長庚醫院檢驗醫學科進行檢驗，結果均符合衛生標準。",
-      "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "20260505長庚檢驗",
-          "url": "http://elder.mcut.edu.tw/website1/upload/20260505%e9%95%b7%e5%ba%9a%e6%aa%a2%e9%a9%97.pdf"
         }
       ]
     }
