@@ -145,9 +145,15 @@ fs.readdirSync(MULTI_SIZE_IMAGE_DIR).forEach(file => {
 	const baseName = file.split('.')[0]
 	const isDarkImage = baseName.includes('_dark')
 	app.get([
-		`/image/${baseName}/:size(\\d+)`,
-		`/image/${baseName}/:prev/:next/:size(\\d+)`
+		`/image/${baseName}/:size`,
+		`/image/${baseName}/:prev/:next/:size`
 	], async (req, res) => {
+		// express 5 改用 path-to-regexp v8，不再支援 :size(\d+) 這種參數內嵌正則，
+		// 改在這裡驗證，維持非數字尺寸回 404 的行為
+		if (!/^\d+$/.test(req.params.size)) {
+			return res.status(404).end()
+		}
+
 		const prev = '« ' + (toShortDate(req.params.prev) || '前一天')
 		const next = (toShortDate(req.params.next) || '後一天') + ' »'
 		const baseImage = await loadBaseImage(baseName)
