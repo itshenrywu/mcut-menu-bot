@@ -2,19 +2,26 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const fs = require('fs').promises
 const path = require('path')
-const { isLocked } = require('./lock')
 
-const args = process.argv.slice(2)
-const start = args[0] ? parseInt(args[0], 10) : -7
-const end = args[1] ? parseInt(args[1], 10) : 7
+const USAGE = '用法：node crawler/menu.js [起始天數偏移=-7] [結束天數偏移=7]'
+
+const parseOffsetArg = (value, fallback, label) => {
+	if (value === undefined) return fallback
+	const parsed = Number(value)
+	if (!Number.isInteger(parsed)) {
+		console.error(`❌ ${label} 必須是整數（收到 "${value}"）`)
+		console.error(USAGE)
+		process.exit(1)
+	}
+	return parsed
+}
 
 const parseMenuHtml = (html) => {
 	const $ = cheerio.load(html)
 
+	// 廠商未上傳菜單時學校網站會導到錯誤頁
 	if ($('a[href="/website1/show_error.aspx"]').length > 0) {
-		return {
-			n: '\n廠商未上傳菜單\n'
-		}
+		return []
 	}
 
 	const menu = {}
@@ -34,13 +41,17 @@ const parseMenuHtml = (html) => {
 		}
 	})
 	
+	const order = ['自助餐', '快餐', '燴飯', '麵食', '湯']
+	// 沒列在 order 裡的類型排到最後（indexOf 回傳 -1，直接相減會讓未知類型跑到最前面）
+	const rank = (type) => {
+		const index = order.indexOf(type)
+		return index === -1 ? order.length : index
+	}
+
 	const output = Object.entries(menu).map(([type, foods]) => ({
 		type,
 		foods
-	})).sort((a, b) => {
-		const order = ['自助餐', '快餐', '燴飯', '麵食', '湯']
-		return order.indexOf(a.type) - order.indexOf(b.type)
-	})
+	})).sort((a, b) => rank(a.type) - rank(b.type))
 
 	return output
 }
@@ -52,12 +63,6 @@ const fetchAndProcessMeal = async (date, mealId) => {
 	const day = today.getDate().toString().padStart(2, '0')
 
 	const cookieDate = `${year}/${month}/${day}`
-	const relativePath = `${cookieDate}/${mealId}.json`
-
-	if (await isLocked(relativePath)) {
-		console.log(`🔒 ${relativePath} 已鎖定 (lock: true)，略過不覆蓋`)
-		return
-	}
 
 	const BASE_URL = 'http://elder.mcut.edu.tw/website1/showmenu.aspx'
 	const headers = {
@@ -98,18 +103,25 @@ const crawler = async (date) => {
 	}
 }
 
-const processNextDay = async (i) => {
-	if (i >= end) {
-		return
+const run = async (start, end) => {
+	for (let i = start; i < end; i++) {
+		const nextDay = new Date()
+		nextDay.setDate(nextDay.getDate() + i + 1)
+
+		console.log(`\n📅 Starting process for date (${i}) : ${nextDay.toLocaleDateString()}`)
+		await crawler(nextDay)
 	}
-
-	const nextDay = new Date()
-	nextDay.setDate(nextDay.getDate() + i + 1)
-
-	console.log(`\n📅 Starting process for date (${i}) : ${nextDay.toLocaleDateString()}`)
-	await crawler(nextDay)
-
-	processNextDay(i + 1)
 }
 
-processNextDay(start)
+if (require.main === module) {
+	const args = process.argv.slice(2)
+	const start = parseOffsetArg(args[0], -7, '起始天數偏移')
+	const end = parseOffsetArg(args[1], 7, '結束天數偏移')
+
+	run(start, end).catch((err) => {
+		console.error(err)
+		process.exitCode = 1
+	})
+}
+
+module.exports = { parseMenuHtml, parseOffsetArg }

@@ -5,6 +5,9 @@ on:
     - cron: '0 14 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check-api-job:
     runs-on: ubuntu-latest

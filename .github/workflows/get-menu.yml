@@ -3,6 +3,9 @@ name: Get Menu
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,19 +13,19 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Check Date
       id: date-check
       run: bash .github/scripts/check-date.sh
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '22'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci --omit=dev
 
     - name: Get meal menu
       if: steps.date-check.outputs.skip != 'true'
@@ -30,6 +33,15 @@ jobs:
 
     - name: Get news
       run: node crawler/news.js
+
+    - name: Checkout published data
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: gh-pages-temp
+
+    - name: Skip locked menus
+      run: node .github/scripts/filter-locked.js data/menu gh-pages-temp
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3

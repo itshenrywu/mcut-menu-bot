@@ -2,11 +2,19 @@ name: Get Snack Menu
 
 on:
   workflow_dispatch:
+    inputs:
+      recent_only:
+        description: '只處理七天內的夜點供應公告（外部 API 觸發時用預設值）'
+        type: boolean
+        default: true
 
 jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
+    permissions:
+      contents: read
 
     outputs:
       branch_exists: ${{ steps.check_step.outputs.exists }}
@@ -33,6 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -49,19 +61,25 @@ jobs:
 
     - name: Install dependencies
       if: steps.date-check.outputs.skip != 'true'
-      run: npm install
+      run: npm ci --omit=dev
 
     - name: Get snack menu
       if: steps.date-check.outputs.skip != 'true'
       id: get_snack_menu
       run: node crawler/snack.js $MODE
+      env:
+        MODE: ${{ inputs.recent_only && 'recent-only' || '' }}
 
-    - name: Checkout
+    - name: Checkout published data
       if: ${{ steps.get_snack_menu.outputs.body != '' }}
       uses: actions/checkout@v4
       with:
         ref: gh-pages
         path: gh-pages-temp
+
+    - name: Skip locked menus
+      if: ${{ steps.get_snack_menu.outputs.body != '' }}
+      run: node .github/scripts/filter-locked.js data/menu gh-pages-temp
 
     - name: Move files
       if: ${{ steps.get_snack_menu.outputs.body != '' }}

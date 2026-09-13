@@ -3,102 +3,15 @@ const cheerio = require('cheerio')
 const { PDFParse } = require('pdf-parse')
 const fs = require('fs').promises
 const path = require('path')
-
-const BASE_URL = 'http://elder.mcut.edu.tw/website1/'
-const INDEX_URL = BASE_URL + 'index.aspx'
-const REQUEST_TIMEOUT_MS = 10_000
+const {
+	BASE_URL,
+	axiosConfig,
+	isAnnouncementWithinDays,
+	fetchAnnouncements
+} = require('./announcements')
 
 const RECENT_ONLY = process.argv.includes('recent-only')
-
-const headers = {
-	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
-}
-
-const axiosConfig = { headers, timeout: REQUEST_TIMEOUT_MS }
-
-const parseAnnouncementDate = (dateStr) => {
-	if (!dateStr) return null
-
-	const match = dateStr.match(/(\d{3,4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/)
-	if (!match) return null
-
-	let year = parseInt(match[1], 10)
-	const month = parseInt(match[2], 10)
-	const day = parseInt(match[3], 10)
-
-	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return null
-
-	if (year < 1000) {
-		year += 1911
-	}
-
-	return new Date(year, month - 1, day)
-}
-
-const isAnnouncementWithinDays = (dateStr, days = 3) => {
-	const date = parseAnnouncementDate(dateStr)
-	if (!date) return true
-
-	const now = new Date()
-	const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-	const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-
-	const diffMs = Math.abs(startOfToday - target)
-	const limitMs = days * 24 * 60 * 60 * 1000
-
-	return diffMs <= limitMs
-}
-
-const parseAnnouncementTable = (html) => {
-	const $ = cheerio.load(html)
-	const announcements = []
-
-	$('table').each((_, table) => {
-		const rows = $(table).find('tr')
-		if (rows.length < 2) return
-
-		const firstRowText = $(rows).eq(0).text()
-		if (!firstRowText.includes('公告主旨')) return
-
-		rows.each((index, element) => {
-			if (index === 0) return
-
-			const tds = $(element).find('td')
-			if (tds.length < 3) return
-
-			const title = $(tds).eq(0).text().trim()
-			const startDate = $(tds).eq(1).text().trim()
-			const endDate = $(tds).eq(2).text().trim()
-
-			if (!title || /^[\d\s]+$/.test(title)) return
-
-			const linkEl = $(tds).eq(3).find('a[href*="index_post.aspx"]').first()
-			const href = linkEl.attr('href') || ''
-			const detailUrl = href.startsWith('http')
-				? href
-				: new URL(href, INDEX_URL).href
-
-			announcements.push({
-				title,
-				startDate,
-				endDate,
-				detailUrl
-			})
-		})
-	})
-
-	return announcements
-}
-
-const fetchAnnouncements = async () => {
-	try {
-		const response = await axios.get(INDEX_URL, axiosConfig)
-		return parseAnnouncementTable(response.data)
-	} catch (error) {
-		console.error('❌ 抓取公告失敗:', error.message)
-		throw error
-	}
-}
+const RECENT_DAYS = 7
 
 const parseAnnouncementDetailAttachments = (html) => {
 	const $ = cheerio.load(html)
@@ -218,7 +131,7 @@ const itemsToPositionedArray = (items, options = {}) => {
 			lastX = item.x
 		}
 		cells.push(cellStr.trim())
-		return cells.filter((c) => c !== '')
+		return cells.filter(Boolean)
 	})
 }
 
@@ -265,7 +178,7 @@ const extractPdfToPositionedArray = async (buffer) => {
 
 const DATE_ROW_REG = /^(\d+)月(\d+)日$/
 
-const toYYYYMMDD = (dateStr) => { // 年份都當作今年，但如果在 12 月時查到公告寫 1 月，當作明年
+const toSlashDate = (dateStr) => { // 年份都當作今年，但如果在 12 月時查到公告寫 1 月，當作明年
 	const match = dateStr.match(DATE_ROW_REG)
 	if (!match) return null
 	const month = parseInt(match[1], 10)
@@ -303,14 +216,20 @@ const parseMenuByDates = (rows) => {
 			foods.push([after[0], after[1]])
 		}
 
-		const date = toYYYYMMDD(dateStr)
+		const date = toSlashDate(dateStr)
 
 		const menu1 = foods.map((f) => f[0]).filter(Boolean)
 		const menu2 = foods.map((f) => f[1]).filter(Boolean)
 
+		// LINE Flex 的 text 元件不接受空字串，沒有餐點就給空陣列
+		const toRows = (items) => {
+			const foodsText = items.join('、').replace(/\//g, '、').trim()
+			return foodsText ? [{ type: '主食', foods: foodsText }] : []
+		}
+
 		const menu = {
-			menu_1: [{ type: '主食', foods: menu1.join('、').replace(/\//g, '、') }],
-			menu_2: [{ type: '主食', foods: menu2.join('、').replace(/\//g, '、') }]
+			menu_1: toRows(menu1),
+			menu_2: toRows(menu2)
 		}
 
 		result.push({ dateStr, date, foods, menu })
@@ -347,12 +266,18 @@ const readAttachmentContent = async (url, name) => {
 	}
 }
 
-const fetchNightSnackAnnouncements = async (keyword = '夜點供應') => {
+// shouldProcess 在下載詳細頁與 PDF 之前先篩掉不需要的公告：
+// 判斷用的 startDate/endDate 索引頁就有，不必下載就能決定。
+// 這樣既不會為了用不到的公告解析 PDF，也不會因為某則舊公告逾時就讓整批 Promise.all 失敗。
+const fetchNightSnackAnnouncements = async (keyword = '夜點供應', shouldProcess = () => true) => {
 	const all = await fetchAnnouncements()
-	const filtered = all.filter((a) => a.title.includes(keyword))
+	const matched = all.filter((a) => a.title.includes(keyword))
+	const targets = matched.filter(shouldProcess)
+
+	console.log(`標題含「${keyword}」的公告 ${matched.length} 則，需要處理 ${targets.length} 則`)
 
 	const results = await Promise.all(
-		filtered.map(async (ann) => {
+		targets.map(async (ann) => {
 			const detailRes = await axios.get(ann.detailUrl, axiosConfig)
 			const attachments = parseAnnouncementDetailAttachments(detailRes.data)
 
@@ -371,27 +296,28 @@ const fetchNightSnackAnnouncements = async (keyword = '夜點供應') => {
 }
 
 const processAnnouncement = async () => {
-	const results = await fetchNightSnackAnnouncements('夜點供應')
-	const sourceResults = RECENT_ONLY
-		? results.filter(({ announcement }) =>
-				isAnnouncementWithinDays(announcement.startDate || announcement.endDate)
-			)
-		: results
+	const results = await fetchNightSnackAnnouncements('夜點供應', (ann) =>
+		!RECENT_ONLY || isAnnouncementWithinDays(ann.startDate || ann.endDate, RECENT_DAYS)
+	)
 
-	if (RECENT_ONLY && sourceResults.length === 0) {
-		console.log('沒有三天內的夜點供應公告')
+	if (RECENT_ONLY && results.length === 0) {
+		console.log(`沒有 ${RECENT_DAYS} 天內的夜點供應公告`)
 		return []
 	}
 
 	const pdfUrls = []
 
-	for (const { attachments } of sourceResults) {
+	for (const { attachments } of results) {
 		for (const att of attachments) {
 			if (att.error || !att.menuByDates) continue
 			if (att.url) pdfUrls.push(att.url)
 
 			for (const { date, menu } of att.menuByDates) {
 				if (!date) continue
+				if (menu.menu_1.length === 0 && menu.menu_2.length === 0) {
+					console.log(`⚠️  ${date} 兩間餐廳都沒有解析到餐點，略過不寫檔`)
+					continue
+				}
 				console.log(date)
 				const [y, m, d] = date.split('/')
 				const dir = path.join(__dirname, '..', 'data', 'menu', y, m, d)
@@ -412,7 +338,17 @@ const processAnnouncement = async () => {
 	return results
 }
 
-processAnnouncement().catch((err) => {
-	console.error(err)
-	process.exitCode = 1
-})
+if (require.main === module) {
+	processAnnouncement().catch((err) => {
+		console.error(err)
+		process.exitCode = 1
+	})
+}
+
+module.exports = {
+	fetchNightSnackAnnouncements,
+	parseAnnouncementDetailAttachments,
+	itemsToPositionedArray,
+	toSlashDate,
+	parseMenuByDates
+}

@@ -7,9 +7,15 @@ const CALENDAR_BASE = 'https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data'
 const fetchWorkdays = async (year) => {
 	const url = `${CALENDAR_BASE}/${year}.json`
 	const { data } = await axios.get(url, { timeout: 10_000 })
+	if (!Array.isArray(data)) {
+		throw new Error(`${url} 回傳的不是陣列`)
+	}
 	const workdays = data
 		.filter((item) => item.isHoliday === false)
 		.map((item) => item.date)
+	if (workdays.length === 0) {
+		throw new Error(`${url} 沒有任何上班日`)
+	}
 	return workdays
 }
 
@@ -24,10 +30,12 @@ const getWorkingDays = async (year) => {
 }
 
 const yearArg = process.argv[2]
-const year = yearArg ? parseInt(yearArg, 10) : new Date().getFullYear()
-if (isNaN(year) || year < 2000 || year > 2100) {
+let year = yearArg ? parseInt(yearArg, 10) : new Date().getFullYear()
+if (Number.isNaN(year) || year < 2000 || year > 2100) {
+	console.warn(`⚠️  年份參數無效（${yearArg}），改用今年`)
 	year = new Date().getFullYear()
 }
 getWorkingDays(year).catch((err) => {
 	console.error(err)
+	process.exitCode = 1
 })

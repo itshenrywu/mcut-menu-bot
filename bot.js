@@ -13,6 +13,28 @@ const { createCanvas, loadImage, registerFont } = require('canvas')
 
 const ONE_DAY = 86400000
 const ONE_HOUR = 3600000
+const ONE_MINUTE = 60000
+
+const API_BASE = process.env.MENU_API_BASE || 'https://mcut-menu-api.henrywu.tw'
+const DATA_DIR = path.join(__dirname, 'data')
+const MENU_DIR = path.join(DATA_DIR, 'menu')
+const SETTING_DIR = path.join(DATA_DIR, 'setting')
+const FONT_PATH = path.join(__dirname, 'fonts', 'NotoSansTC-Regular.ttf')
+const MULTI_SIZE_IMAGE_DIR = path.join(__dirname, 'public', 'multi_size_image')
+const IMAGE_DIR = path.join(__dirname, 'public', 'image')
+
+const REQUIRED_ENV = ['CHANNEL_SECRET', 'CHANNEL_ACCESS_TOKEN', 'URL']
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key])
+if (missingEnv.length > 0) {
+	console.error(`❌ 缺少必要的環境變數：${missingEnv.join(', ')}`)
+	process.exit(1)
+}
+try {
+	new URL(process.env.URL)
+} catch (e) {
+	console.error(`❌ 環境變數 URL 不是合法的網址：${process.env.URL}`)
+	process.exit(1)
+}
 
 const getColors = (isDark) => ({
 	PRIMARY: '#3498db',
@@ -101,15 +123,25 @@ const setting_options_dark_mode = [
 
 const toShortDate = (str) => {
 	if(!/^\d+$/.test(str)) return null
-	if(str?.length == 8) {
+	if(str?.length === 8) {
 		str = str.slice(-4)
 	}
-	if(str?.length != 4) return null
+	if(str?.length !== 4) return null
 	return `${parseInt(str.slice(0, 2))}/${parseInt(str.slice(2, 4))}`
 }
 
-registerFont('./fonts/NotoSansTC-Regular.ttf', { family: 'NotoSansTC' })
-fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file => {
+registerFont(FONT_PATH, { family: 'NotoSansTC' })
+
+// 底圖只有 8 張，而 LINE 每張 imagemap 會抓多個尺寸，快取 Promise 避免每次請求都讀磁碟
+const baseImageCache = new Map()
+const loadBaseImage = (baseName) => {
+	if (!baseImageCache.has(baseName)) {
+		baseImageCache.set(baseName, loadImage(path.join(MULTI_SIZE_IMAGE_DIR, `${baseName}.png`)))
+	}
+	return baseImageCache.get(baseName)
+}
+
+fs.readdirSync(MULTI_SIZE_IMAGE_DIR).forEach(file => {
 	const baseName = file.split('.')[0]
 	const isDarkImage = baseName.includes('_dark')
 	app.get([
@@ -118,7 +150,7 @@ fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file 
 	], async (req, res) => {
 		const prev = '« ' + (toShortDate(req.params.prev) || '前一天')
 		const next = (toShortDate(req.params.next) || '後一天') + ' »'
-		const baseImage = await loadImage(`./public/multi_size_image/${baseName}.png`)
+		const baseImage = await loadBaseImage(baseName)
 		const canvas = createCanvas(baseImage.width, baseImage.height)
 		const ctx = canvas.getContext('2d')
 		ctx.drawImage(baseImage, 0, 0)
@@ -137,8 +169,8 @@ fs.readdirSync(path.join(__dirname, 'public', 'multi_size_image')).forEach(file 
 	})
 })
 
-fs.readdirSync(path.join(__dirname, 'public', 'image')).forEach(file => {
-	app.get(`/image/${file}`, (req, res) => { res.sendFile(path.join(__dirname, 'public', 'image', file)) })
+fs.readdirSync(IMAGE_DIR).forEach(file => {
+	app.get(`/image/${file}`, (req, res) => { res.sendFile(path.join(IMAGE_DIR, file)) })
 })
 
 const webhookLimiter = rateLimit({
@@ -150,12 +182,12 @@ const webhookLimiter = rateLimit({
 
 app.post('/webhook', webhookLimiter, line.middleware(config), (req, res) => {
 	Promise
-	.all(req.body.events.map(handleEvent))
-	.then((result) => res.json(result))
-	.catch((err) => {
-		console.error(err)
-		res.status(500).end()
-	})
+		.all(req.body.events.map(handleEvent))
+		.then((result) => res.json(result))
+		.catch((err) => {
+			console.error(err)
+			res.status(500).end()
+		})
 })
 
 const toYYYYMMDD = (date) => {
@@ -170,6 +202,8 @@ const toSlashFormat = (input) => {
 }
 
 const getRestaurantMenuFlex = (menu, date, mealId, restaurant, colors) => {
+	// 人工修改過的菜單可能少掉某一邊的 key，缺少時當作沒有菜單而不是整則回覆失敗
+	const rows = Array.isArray(menu?.[`menu_${restaurant.id}`]) ? menu[`menu_${restaurant.id}`] : []
 	return {
 		type: 'bubble',
 		...(colors.BG ? { styles: { body: { backgroundColor: colors.BG } } } : {}),
@@ -184,7 +218,7 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant, colors) => {
 					contents: [
 						{
 							type: 'text',
-							text: `${restaurant.name} ${date.getFullYear() == new Date().getFullYear() ? '' : `${date.getFullYear().toString().slice(2, 4)}/`}${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}`,
+							text: `${restaurant.name} ${date.getFullYear() === new Date().getFullYear() ? '' : `${date.getFullYear().toString().slice(2, 4)}/`}${date.getMonth()+1}/${date.getDate()} (${['日','一','二','三','四','五','六'][date.getDay()]}) ${meals[mealId].title}`,
 							weight: 'bold',
 							align: 'center',
 							color: colors.TITLE,
@@ -206,45 +240,45 @@ const getRestaurantMenuFlex = (menu, date, mealId, restaurant, colors) => {
 					margin: 'lg',
 					spacing: 'md',
 					contents:
-						menu[`menu_${restaurant.id}`].length > 0 ?
-						menu[`menu_${restaurant.id}`].map((row) => (
-							{
-								type: 'box',
-								layout: 'vertical',
-								contents: [
-									(row.type && menu[`menu_${restaurant.id}`].length > 1) ? {
-										type: 'text',
-										text: row.type,
-										size: 'sm',
-										color: colors.SUBTITLE
-									} : null,
-									{
-										type: 'text',
-										text: row.foods,
-										wrap: true,
-										size: 'xs',
-										color: colors.TITLE
-									}
-								].filter(i => i !== null)
-							}
-						)) :
-						[
-							{
-								type: 'box',
-								height: '60px',
-								justifyContent: 'center',
-								layout: 'vertical',
-								contents: [
-									{
-										type: 'text',
-										text: mealId == 4 ? '今日未提供段考週免費宵夜' : '廠商尚未上傳菜單',
-										size: 'sm',
-										color: colors.RED,
-										align: 'center'
-									}
-								]
-							}
-						]
+						rows.length > 0 ?
+							rows.map((row) => (
+								{
+									type: 'box',
+									layout: 'vertical',
+									contents: [
+										(row.type && rows.length > 1) ? {
+											type: 'text',
+											text: row.type,
+											size: 'sm',
+											color: colors.SUBTITLE
+										} : null,
+										{
+											type: 'text',
+											text: row.foods,
+											wrap: true,
+											size: 'xs',
+											color: colors.TITLE
+										}
+									].filter(Boolean)
+								}
+							)) :
+							[
+								{
+									type: 'box',
+									height: '60px',
+									justifyContent: 'center',
+									layout: 'vertical',
+									contents: [
+										{
+											type: 'text',
+											text: Number(mealId) === 4 ? '今日未提供段考週免費宵夜' : '廠商尚未上傳菜單',
+											size: 'sm',
+											color: colors.RED,
+											align: 'center'
+										}
+									]
+								}
+							]
 				},
 				{
 					type: 'text',
@@ -288,7 +322,7 @@ const getUserSettingFlex = (user_setting) => {
 							contents: [],
 							width: '8px',
 							height: '8px',
-							backgroundColor: currentValue == option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
+							backgroundColor: currentValue === option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
 							cornerRadius: '8px'
 						}
 					],
@@ -375,7 +409,7 @@ const getUserSettingFlex = (user_setting) => {
 															contents: [],
 															width: '8px',
 															height: '8px',
-															backgroundColor: user_setting.display_type == option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
+															backgroundColor: user_setting.display_type === option.value ? colors.PRIMARY : colors.RADIO_UNSELECTED,
 															cornerRadius: '8px'
 														}
 													],
@@ -436,7 +470,7 @@ const getUserSettingFlex = (user_setting) => {
 const workingDaysCache = {}
 
 const fetchWorkingDaysFromAPI = async (year) => {
-	const url = `https://mcut-menu-api.henrywu.tw/${year}/working-day.json`
+	const url = `${API_BASE}/${year}/working-day.json`
 	const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
 	if (!res.ok) throw new Error(`Failed to fetch working days: ${res.status}`)
 	const data = await res.json()
@@ -455,30 +489,42 @@ const getWorkingDaysForYear = async (year) => {
 	return list
 }
 
+const getWorkingDaysForYearOrEmpty = async (year) => {
+	try {
+		return await getWorkingDaysForYear(year)
+	} catch (e) {
+		console.error(e)
+		return []
+	}
+}
+
 const getAdjacentWorkingDays = async (date) => {
 	const compactDate = toYYYYMMDD(date)
 	const year = date.getFullYear()
-	const years = [year]
-	if (date.getMonth() === 11 && date.getDate() >= 28) years.push(year + 1)
-	if (date.getMonth() === 0 && date.getDate() <= 3) years.unshift(year - 1)
 
-	let allWorkingDays = []
-	for (const y of years) {
-		try {
-			const list = await getWorkingDaysForYear(y)
-			allWorkingDays = allWorkingDays.concat(list)
-		} catch (e) {
-			console.error(e)
-			return {
-				next: toSlashFormat(new Date(date.getTime() + ONE_DAY)),
-				previous: toSlashFormat(new Date(date.getTime() - ONE_DAY))
-			}
+	let workingDays
+	try {
+		workingDays = [...await getWorkingDaysForYear(year)].sort()
+	} catch (e) {
+		console.error(e)
+		// 查不到上班日時退回單純的前後一天，key 必須與呼叫端解構的名稱一致
+		return {
+			next_day: toSlashFormat(new Date(date.getTime() + ONE_DAY)),
+			prev_day: toSlashFormat(new Date(date.getTime() - ONE_DAY))
 		}
 	}
-	allWorkingDays.sort()
 
-	const nextStr = allWorkingDays.find((d) => d > compactDate)
-	const prevStr = [...allWorkingDays].reverse().find((d) => d < compactDate)
+	let nextStr = workingDays.find((d) => d > compactDate)
+	let prevStr = [...workingDays].reverse().find((d) => d < compactDate)
+
+	// 跨年連假可能長到當年度找不到相鄰上班日，這時才去載相鄰年份
+	if (!nextStr) {
+		nextStr = [...await getWorkingDaysForYearOrEmpty(year + 1)].sort().find((d) => d > compactDate)
+	}
+	if (!prevStr) {
+		prevStr = [...await getWorkingDaysForYearOrEmpty(year - 1)].sort().reverse().find((d) => d < compactDate)
+	}
+
 	return {
 		next_day: nextStr ? toSlashFormat(nextStr) : null,
 		prev_day: prevStr ? toSlashFormat(prevStr) : null
@@ -532,7 +578,7 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 			} : null,
 			{
 				type: 'message',
-				text: `${prev_day} ${meals[mealId].name}`,
+				text: prev_day ? `${prev_day} ${meals[mealId].name}` : meals[mealId].name,
 				area: { x: 127, y: 102, width: 225, height: 70 }
 			},
 			{
@@ -542,29 +588,77 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 			},
 			!menu_image_url.includes('no_next') ? {
 				type: 'message',
-				text: `${next_day} ${meals[mealId].name}`,
+				text: next_day ? `${next_day} ${meals[mealId].name}` : meals[mealId].name,
 				area: { x: 682, y: 102, width: 225, height: 70 }
 			} : null,
-		].filter(i => i !== null)
+		].filter(Boolean)
+	}
+}
+
+// 本機 data/ 只有查詢過的菜單（爬蟲都在 GitHub Actions 執行），
+// 所以本機找不到 4.json 時要再向 API 確認一次，並把結果快取起來避免每則訊息都打 API
+const snackAvailabilityCache = new Map()
+const SNACK_HIT_TTL = ONE_HOUR
+const SNACK_MISS_TTL = 10 * ONE_MINUTE
+
+const rememberSnackAvailability = (dateStr, hasSnack) => {
+	if (snackAvailabilityCache.size > 200) {
+		const now = Date.now()
+		for (const [key, value] of snackAvailabilityCache) {
+			if (value.expiresAt <= now) snackAvailabilityCache.delete(key)
+		}
+	}
+	snackAvailabilityCache.set(dateStr, {
+		hasSnack,
+		expiresAt: Date.now() + (hasSnack ? SNACK_HIT_TTL : SNACK_MISS_TTL)
+	})
+}
+
+const hasSnackMenu = async (date) => {
+	const dateStr = toSlashFormat(date)
+	try {
+		await fsPromises.access(path.join(MENU_DIR, dateStr, '4.json'))
+		return true
+	} catch (e) {
+		if (e.code !== 'ENOENT') throw e
+	}
+
+	const cached = snackAvailabilityCache.get(dateStr)
+	if (cached && cached.expiresAt > Date.now()) return cached.hasSnack
+
+	let hasSnack = false
+	try {
+		const res = await fetch(`${API_BASE}/${dateStr}/4.json`, { signal: AbortSignal.timeout(3000) })
+		hasSnack = res.ok
+	} catch (e) {
+		console.error('hasSnackMenu error', e.message || e)
+	}
+	rememberSnackAvailability(dateStr, hasSnack)
+	return hasSnack
+}
+
+const showLoading = async (userId) => {
+	try {
+		await client.showLoadingAnimation({
+			chatId: userId,
+			loadingSeconds: 5
+		})
+	} catch (e) {
+		// 使用者沒有加 bot 好友（例如群組聊天）時 LINE 會回 400，不該讓真正的回覆消失
+		console.error('showLoadingAnimation error', e.message || e)
 	}
 }
 
 const getDefaultNavImagemap = async (isDark = false) => {
 	const date = new Date()
 	const mealId = getCurrentMealId()
-	let has_snack = false
-	try {
-		await fsPromises.access(`data/menu/${toSlashFormat(date)}/4.json`)
-		has_snack = true
-	} catch (e) {
-		if (e.code !== 'ENOENT') throw e
-	}
+	const has_snack = await hasSnackMenu(date)
 	const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 	return buildMenuNavImagemap(date, mealId, prev_day, next_day, has_snack, true, isDark)
 }
 
 const getMenuFromFile = async (date, mealId) => {
-	const menu_path = `data/menu/${toSlashFormat(date)}/${mealId}.json`
+	const menu_path = path.join(MENU_DIR, toSlashFormat(date), `${mealId}.json`)
 	try {
 		const stat = await fsPromises.stat(menu_path)
 		if ((new Date().getTime() - stat.mtime.getTime()) < ONE_HOUR) {
@@ -578,9 +672,10 @@ const getMenuFromFile = async (date, mealId) => {
 }
 
 const getMenuFromAPI = async (date, mealId) => {
-	const menu_path = `data/menu/${toSlashFormat(date)}/${mealId}.json`
+	const dateStr = toSlashFormat(date)
+	const menu_path = path.join(MENU_DIR, dateStr, `${mealId}.json`)
 	try {
-		const res = await fetch(`https://mcut-menu-api.henrywu.tw/${toSlashFormat(date)}/${mealId}.json`, {
+		const res = await fetch(`${API_BASE}/${dateStr}/${mealId}.json`, {
 			signal: AbortSignal.timeout(5000)
 		})
 		if (res.ok) {
@@ -590,28 +685,25 @@ const getMenuFromAPI = async (date, mealId) => {
 			return menu
 		}
 	} catch (e) {
-		return {
-			menu_1: {},
-			menu_2: {},
-		}
+		console.error('getMenuFromAPI error', e.message || e)
 	}
 	return {
-		menu_1: {},
-		menu_2: {},
+		menu_1: [],
+		menu_2: [],
 	}
 }
 
 const fetchNewsFromAPI = async () => {
 	try {
-		const res = await fetch('https://mcut-menu-api.henrywu.tw/news.json', { signal: AbortSignal.timeout(5000) })
+		const res = await fetch(`${API_BASE}/news.json`, { signal: AbortSignal.timeout(5000) })
 		if (res.ok) {
 			const data = await res.json()
 			if (Array.isArray(data)) return data
 		}
 	} catch (e) {
 		console.error('fetchNewsFromAPI error', e)
-		return []
 	}
+	return []
 }
 
 const getFileExtension = (url) => {
@@ -771,7 +863,7 @@ const handleEvent = async (event) => {
 	if (!userId || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
 		return Promise.resolve(null)
 	}
-	const user_setting_path = `data/setting/${userId}.json`
+	const user_setting_path = path.join(SETTING_DIR, `${userId}.json`)
 	let user_setting = {}
 	try {
 		const content = await fsPromises.readFile(user_setting_path, 'utf8')
@@ -793,17 +885,17 @@ const handleEvent = async (event) => {
 			]
 		})
 	}
-	else if (event.type == 'postback') {
+	else if (event.type === 'postback') {
 		const data = event.postback.data.split('=')
-		if (data.length >= 2 && data[0] == 'display_type' && setting_options_display_type.some(option => option.value == data[1])) {
+		if (data.length >= 2 && data[0] === 'display_type' && setting_options_display_type.some(option => option.value === data[1])) {
 			user_setting.display_type = data[1]
 			await fsPromises.writeFile(user_setting_path, JSON.stringify(user_setting))
 		}
-		else if (data.length >= 2 && data[0] == 'display_order' && setting_options_display_order.some(option => option.value == data[1])) {
+		else if (data.length >= 2 && data[0] === 'display_order' && setting_options_display_order.some(option => option.value === data[1])) {
 			user_setting.display_order = data[1]
 			await fsPromises.writeFile(user_setting_path, JSON.stringify(user_setting))
 		}
-		else if (data.length >= 2 && data[0] == 'dark_mode' && setting_options_dark_mode.some(option => option.value == data[1])) {
+		else if (data.length >= 2 && data[0] === 'dark_mode' && setting_options_dark_mode.some(option => option.value === data[1])) {
 			user_setting.dark_mode = data[1]
 			await fsPromises.writeFile(user_setting_path, JSON.stringify(user_setting))
 		}
@@ -814,7 +906,7 @@ const handleEvent = async (event) => {
 			]
 		})
 	}
-	else if (event.message?.type == 'text') {
+	else if (event.message?.type === 'text') {
 		if(event.message.text.includes('設定')) {
 			return client.replyMessage({
 				replyToken: event.replyToken,
@@ -825,10 +917,7 @@ const handleEvent = async (event) => {
 		}
 
 		if (event.message.text.includes('公告')) {
-			await client.showLoadingAnimation({
-				chatId: userId,
-				loadingSeconds: 5 
-			})
+			await showLoading(userId)
 			const news = await fetchNewsFromAPI()
 			const flex = buildNewsFlex(news)
 			return client.replyMessage({
@@ -849,7 +938,7 @@ const handleEvent = async (event) => {
 			}
 		})
 
-		if( mealId == 0 ) {
+		if( mealId === 0 ) {
 			return client.replyMessage({
 				replyToken: event.replyToken,
 				messages: [
@@ -873,13 +962,18 @@ const handleEvent = async (event) => {
 		}
 
 		let date = new Date()
-		const date_from_message = event.message.text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/)
+		const date_from_message = event.message.text.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
 		if( date_from_message ) {
 			const year = parseInt(date_from_message[1])
 			const month = parseInt(date_from_message[2]) - 1
 			const day = parseInt(date_from_message[3])
 			const date_in_message = new Date(year, month, day)
-			if( date_in_message.toString() !== 'Invalid Date' ) {
+			// new Date(2026, 1, 30) 會自動進位成 3/2 而不是 Invalid Date，要比對建構後的年月日
+			if(
+				date_in_message.getFullYear() === year &&
+				date_in_message.getMonth() === month &&
+				date_in_message.getDate() === day
+			) {
 				date = date_in_message
 			}
 			else {
@@ -897,29 +991,20 @@ const handleEvent = async (event) => {
 
 		let menu = await getMenuFromFile(date, mealId)
 		if( !menu ) {
-			await client.showLoadingAnimation({
-				chatId: userId,
-				loadingSeconds: 5 
-			})
+			await showLoading(userId)
 			menu = await getMenuFromAPI(date, mealId)
 		}
 
-		let has_snack = false
-		try {
-			await fsPromises.access(`data/menu/${toSlashFormat(date)}/4.json`)
-			has_snack = true
-		} catch (e) {
-			if (e.code !== 'ENOENT') throw e
-		}
+		const has_snack = await hasSnackMenu(date)
 
-		const is_today = new Date().toDateString() == date.toDateString()
+		const is_today = new Date().toDateString() === date.toDateString()
 		const { prev_day, next_day } = await getAdjacentWorkingDays(date)
 
 		const colors = getColors(isDark)
-		const orderedRestaurants = user_setting.display_order == '2_1' ? [...restaurants].reverse() : restaurants
+		const orderedRestaurants = user_setting.display_order === '2_1' ? [...restaurants].reverse() : restaurants
 
 		let messages = []
-		if(user_setting.display_type == 'horizontal') {
+		if(user_setting.display_type === 'horizontal') {
 			messages = [{
 				type: 'flex',
 				altText: '學餐菜單',
@@ -951,6 +1036,6 @@ const handleEvent = async (event) => {
 
 const port = process.env.PORT || 80
 app.listen(port, async () => {
-	await fsPromises.mkdir('data/setting', { recursive: true })
+	await fsPromises.mkdir(SETTING_DIR, { recursive: true })
 	console.log(`MCUT Menu Bot listening on ${port}`)
 })

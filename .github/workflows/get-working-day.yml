@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 14 1 7 *'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +23,7 @@ jobs:
         node-version: '22'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci --omit=dev
 
     - name: Get working day (current year)
       if: github.event_name == 'workflow_dispatch'
@@ -28,6 +31,15 @@ jobs:
 
     - name: Get working day (next year)
       run: node crawler/working-day.js $(($(date +%Y) + 1))
+
+    - name: Checkout published data
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: gh-pages-temp
+
+    - name: Skip locked menus
+      run: node .github/scripts/filter-locked.js data/menu gh-pages-temp
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
