@@ -23,11 +23,16 @@
     "endDate": "2027/01/31",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=973",
     "detail": {
-      "title": "",
-      "content": "",
+      "title": "115.08.30(日)新生家長座談學生餐廳菜單",
+      "content": "115.08.30(日)新生家長座談兩家學生餐廳皆開放用餐，用餐時間如下: 午餐:11:00-13:00 晚餐:16:30-18:30 當日菜單如附。",
       "relatedUrl": "",
-      "attachments": [],
-      "error": "timeout of 15000ms exceeded"
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "1150830學生餐廳菜單",
+          "url": "http://elder.mcut.edu.tw/website1/upload/1150830%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e8%8f%9c%e5%96%ae.pdf"
+        }
+      ]
     }
   },
   {
