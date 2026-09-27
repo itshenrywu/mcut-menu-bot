@@ -23,11 +23,16 @@
     "endDate": "2027/01/31",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=973",
     "detail": {
-      "title": "",
-      "content": "",
+      "title": "115.08.30(日)新生家長座談學生餐廳菜單",
+      "content": "115.08.30(日)新生家長座談兩家學生餐廳皆開放用餐，用餐時間如下: 午餐:11:00-13:00 晚餐:16:30-18:30 當日菜單如附。",
       "relatedUrl": "",
-      "attachments": [],
-      "error": "timeout of 15000ms exceeded"
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "1150830學生餐廳菜單",
+          "url": "http://elder.mcut.edu.tw/website1/upload/1150830%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e8%8f%9c%e5%96%ae.pdf"
+        }
+      ]
     }
   },
   {
@@ -48,11 +53,16 @@
     "endDate": "2027/08/20",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=971",
     "detail": {
-      "title": "",
-      "content": "",
+      "title": "114學年度(下)學生伙食團損益表",
+      "content": "114學年度(下)伙食結餘金扣除學生餐費、補貼差額、弱勢學生餐費補助及設備購置與維修費用後，結餘款為虧損2,488,104元，明細如附。",
       "relatedUrl": "",
-      "attachments": [],
-      "error": "timeout of 15000ms exceeded"
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "114學年度(下)學生伙食團損益表",
+          "url": "http://elder.mcut.edu.tw/website1/upload/114%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8b)%e5%ad%b8%e7%94%9f%e4%bc%99%e9%a3%9f%e5%9c%98%e6%90%8d%e7%9b%8a%e8%a1%a8.pdf"
+        }
+      ]
     }
   },
   {
@@ -101,10 +111,11 @@
     "endDate": "2027/02/28",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=968",
     "detail": {
-      "title": "請大學四年級同學於115年07月01日至07月20日期間上網填寫115學年度第一學期搭伙意願",
-      "content": "大學部四年級同學(學號U12)依規定自由選擇參加團膳，故需請同學於07月01日06:00至07月20日23:00期間，至校園網路(學生資訊查詢系統>繳費選課相關>伙食調查問卷 )填寫115學年度第一學期參加團膳意願調查表。 1.勾選「參加團膳」選項選擇搭伙，其註冊單上伙食費欄位會依照學期上課天數顯示費用金額，用餐時間憑校園卡刷卡取餐。 2.勾選「不參加團膳」，其註冊單上伙食費用為零，故不需繳交伙食費，如需至餐廳用餐依餐廳公告金額購買餐券用餐。 3.未填寫意願調查表的同學，則一律視為「不參加團膳」，註冊單上不會顯示繳費金額。※為保障個人權益，上述選項需於07/20系統關閉前完成。",
+      "title": "",
+      "content": "",
       "relatedUrl": "",
-      "attachments": []
+      "attachments": [],
+      "error": "timeout of 15000ms exceeded"
     }
   },
   {
