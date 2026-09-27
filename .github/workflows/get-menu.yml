@@ -31,14 +31,17 @@ jobs:
       if: steps.date-check.outputs.skip != 'true'
       run: node crawler/menu.js
 
-    - name: Get news
-      run: node crawler/news.js
-
     - name: Checkout published data
       uses: actions/checkout@v4
       with:
         ref: gh-pages
         path: gh-pages-temp
+
+    # 內頁抓不到時沿用已發布的內容。公告是附加功能，失敗時保留舊的 news.json，不擋菜單部署
+    - name: Get news
+      continue-on-error: true
+      timeout-minutes: 3
+      run: node crawler/news.js gh-pages-temp/news.json
 
     - name: Skip locked menus
       run: node .github/scripts/filter-locked.js data/menu gh-pages-temp
