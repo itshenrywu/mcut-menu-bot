@@ -5,16 +5,11 @@
     "endDate": "2027/01/31",
     "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=974",
     "detail": {
-      "title": "115學年度第1學期學生退伙申請名單(115.09第一周)",
-      "content": "1.本次公告為115學年上學期115年9月份第一周申請退伙核准名單，如附件。 2.會計室約3週後將退伙費用匯入申請人郵局帳戶。",
+      "title": "",
+      "content": "",
       "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "學生退伙明細表-115學年度(上)-11509第一周",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-115%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8a)-11509%e7%ac%ac%e4%b8%80%e5%91%a8.pdf"
-        }
-      ]
+      "attachments": [],
+      "error": "timeout of 15000ms exceeded"
     }
   },
   {
