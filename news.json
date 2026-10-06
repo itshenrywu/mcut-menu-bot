@@ -54,6 +54,24 @@
     }
   },
   {
+    "title": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案",
+    "startDate": "2026/08/28",
+    "endDate": "2027/02/28",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=977",
+    "detail": {
+      "title": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案",
+      "content": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案，詳如附件公文及網址。",
+      "relatedUrl": "https://www.cpat.org.tw/page/news/show.aspx?num=32",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "中聯油脂案訴訟資訊宣導辦理情形公文",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e4%b8%ad%e8%81%af%e6%b2%b9%e8%84%82%e6%a1%88%e8%a8%b4%e8%a8%9f%e8%b3%87%e8%a8%8a%e5%ae%a3%e5%b0%8e%e8%be%a6%e7%90%86%e6%83%85%e5%bd%a2%e5%85%ac%e6%96%87.pdf"
+        }
+      ]
+    }
+  },
+  {
     "title": "115.08.30(日)新生家長座談學生餐廳菜單",
     "startDate": "2026/08/28",
     "endDate": "2027/01/31",
@@ -111,34 +129,6 @@
       "content": "如原調查為不參加團膳，現需改為參加團膳，且學雜費已繳交完成者 (若學雜費尚未繳交可回信告知，可直接協助更改繳費單上伙食費)，請同學於即日起至115年09月09日(三)中午12:00前選擇以下其一方式辦理: 1.親至教學大樓1樓總務處出納組辦理繳費 (現金繳款，大四伙食費: 12,606元/學期) 2.以匯款方式將伙食費12,606元匯款至財團法人明志科技大學帳戶:華南銀行泰山分行193200017296後，將匯款證明以電子郵件(jouyuan@mail.mcut.edu.tw)或傳真方式(02-2904-1914)提供備查(須註明學生班級、學號、姓名) 以上內容確認無誤後即可開放用餐權限",
       "relatedUrl": "",
       "attachments": []
-    }
-  },
-  {
-    "title": "本校「中聯油脂案」清查情形。",
-    "startDate": "2026/07/09",
-    "endDate": "2027/02/28",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=969",
-    "detail": {
-      "title": "本校「中聯油脂案」清查情形。",
-      "content": "一、依據教育部來函請各校清查學生餐廳使用油品，倘查有使用受影響產品情形，請立即停止使用。 二、伙食團已盤點清查本校學生餐廳於學期中供餐用油皆非受影響之產品並已於衛福部系統回報。(廠商聲明書如附檔) 三、因目前為本校暑假期間無供餐，將於開學供餐前請廠商確認進貨品項及批號，並提供相關檢驗證明或聲明書後再行使用。",
-      "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "宏遠國際餐飲股份有限公司聲明書1150706",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ae%8f%e9%81%a0%e5%9c%8b%e9%9a%9b%e9%a4%90%e9%a3%b2%e8%82%a1%e4%bb%bd%e6%9c%89%e9%99%90%e5%85%ac%e5%8f%b8%e8%81%b2%e6%98%8e%e6%9b%b81150706.pdf"
-        },
-        {
-          "label": "檔案2下載",
-          "name": "福懋聲明稿",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e7%a6%8f%e6%87%8b%e8%81%b2%e6%98%8e%e7%a8%bf.pdf"
-        },
-        {
-          "label": "檔案3下載",
-          "name": "聲明書-20260701",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e8%81%b2%e6%98%8e%e6%9b%b8-20260701.pdf"
-        }
-      ]
     }
   }
 ]
