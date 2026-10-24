@@ -544,6 +544,10 @@ const getCurrentMealId = () => {
 	return 3
 }
 
+// imagemap 按鈕只能送文字訊息（不支援 postback），在文字前面加零寬空白當記號，
+// 群組裡才分得出是按了導覽按鈕還是一般聊天
+const NAV_BUTTON_MARKER = '\u200B'
+
 const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_today, isDark = false) => {
 	let menu_image_url = 'menu'
 	if (has_snack) menu_image_url += '_snack'
@@ -597,7 +601,7 @@ const buildMenuNavImagemap = (date, mealId, prev_day, next_day, has_snack, is_to
 				text: next_day ? `${next_day} ${meals[mealId].name}` : meals[mealId].name,
 				area: { x: 682, y: 102, width: 225, height: 70 }
 			} : null,
-		].filter(Boolean)
+		].filter(Boolean).map(action => ({ ...action, text: NAV_BUTTON_MARKER + action.text }))
 	}
 }
 
@@ -864,9 +868,21 @@ const buildNewsFlex = (newsList) => {
 	}
 }
 
+// 拿掉 @標記 的文字，避免 bot 或被標記的人名字裡剛好有「午餐」之類的關鍵字
+const stripMentions = (message) => {
+	const mentionees = [...(message.mention?.mentionees || [])].sort((a, b) => b.index - a.index)
+	return mentionees.reduce((text, mentionee) => text.slice(0, mentionee.index) + text.slice(mentionee.index + mentionee.length), message.text)
+}
+
 const handleEvent = async (event) => {
 	const userId = event.source?.userId
 	if (!userId || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
+		return Promise.resolve(null)
+	}
+	// 群組／多人聊天室只回應標記 bot、postback 和導覽按鈕，不然每則聊天都會被回覆
+	const isMentioned = event.message?.mention?.mentionees?.some(mentionee => mentionee.isSelf)
+	const isNavButton = event.message?.text?.startsWith(NAV_BUTTON_MARKER)
+	if (event.source.type !== 'user' && event.type !== 'postback' && !isMentioned && !isNavButton) {
 		return Promise.resolve(null)
 	}
 	const user_setting_path = path.join(SETTING_DIR, `${userId}.json`)
@@ -913,7 +929,9 @@ const handleEvent = async (event) => {
 		})
 	}
 	else if (event.message?.type === 'text') {
-		if(event.message.text.includes('設定')) {
+		const text = stripMentions(event.message)
+
+		if(text.includes('設定')) {
 			return client.replyMessage({
 				replyToken: event.replyToken,
 				messages: [
@@ -922,7 +940,7 @@ const handleEvent = async (event) => {
 			})
 		}
 
-		if (event.message.text.includes('公告')) {
+		if (text.includes('公告')) {
 			await showLoading(userId)
 			const news = await fetchNewsFromAPI()
 			const flex = buildNewsFlex(news)
@@ -936,7 +954,7 @@ const handleEvent = async (event) => {
 		let matchedCount = 0
 
 		Object.entries(meals).forEach(([id, meal]) => {
-			if ( event.message.text.includes(meal.name) ) {
+			if ( text.includes(meal.name) ) {
 				matchedCount++
 				if(mealId === 0) {
 					mealId = id
@@ -954,7 +972,7 @@ const handleEvent = async (event) => {
 			})
 		}
 
-		if (matchedCount > 1 || event.message.text.includes('早午餐') || event.message.text.includes('午晚餐')) {
+		if (matchedCount > 1 || text.includes('早午餐') || text.includes('午晚餐')) {
 			return client.replyMessage({
 				replyToken: event.replyToken,
 				messages: [
@@ -968,7 +986,7 @@ const handleEvent = async (event) => {
 		}
 
 		let date = new Date()
-		const date_from_message = event.message.text.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
+		const date_from_message = text.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
 		if( date_from_message ) {
 			const year = parseInt(date_from_message[1])
 			const month = parseInt(date_from_message[2]) - 1
