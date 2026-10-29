@@ -1,5 +1,23 @@
 [
   {
+    "title": "1151102-1104期中考夜點供應說明",
+    "startDate": "2026/10/29",
+    "endDate": "2027/02/28",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=979",
+    "detail": {
+      "title": "1151102-1104期中考夜點供應說明",
+      "content": "1151102-1106為行事曆表訂期中考週，依往例學生餐廳將提供三天免費夜點 (菜單如附檔)，同學可於以下時間及地點至餐廳取用。 時間:晚上20:00-21:00 地點:第一餐廳2樓及第二餐廳B2用餐區。",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "宵夜菜單1151102~1104",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ae%b5%e5%a4%9c%e8%8f%9c%e5%96%ae1151102~1104.pdf"
+        }
+      ]
+    }
+  },
+  {
     "title": "115年健促計畫-健康輕食餐推廣活動",
     "startDate": "2026/10/20",
     "endDate": "2027/02/28",
@@ -117,24 +135,6 @@
       "content": "本校第一飲食部 (第一餐廳下方)業者因故，於115/8/31(一)至9/4(五)公休。",
       "relatedUrl": "",
       "attachments": []
-    }
-  },
-  {
-    "title": "114學年度(下)學生伙食團損益表",
-    "startDate": "2026/08/21",
-    "endDate": "2027/08/20",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=971",
-    "detail": {
-      "title": "114學年度(下)學生伙食團損益表",
-      "content": "114學年度(下)伙食結餘金扣除學生餐費、補貼差額、弱勢學生餐費補助及設備購置與維修費用後，結餘款為虧損2,488,104元，明細如附。",
-      "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "114學年度(下)學生伙食團損益表",
-          "url": "http://elder.mcut.edu.tw/website1/upload/114%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8b)%e5%ad%b8%e7%94%9f%e4%bc%99%e9%a3%9f%e5%9c%98%e6%90%8d%e7%9b%8a%e8%a1%a8.pdf"
-        }
-      ]
     }
   }
 ]
