@@ -1,5 +1,23 @@
 [
   {
+    "title": "115學年度第1學期學生退伙申請名單(115.10)",
+    "startDate": "2026/10/30",
+    "endDate": "2027/07/31",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=980",
+    "detail": {
+      "title": "115學年度第1學期學生退伙申請名單(115.10)",
+      "content": "1.本次公告為115學年上學期115年10月份申請退伙核准名單，如附件。 2.會計室約3週後將退伙費用匯入申請人郵局帳戶。",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "學生退伙明細表-115學年度(上)-11510",
+          "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-115%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8a)-11510.pdf"
+        }
+      ]
+    }
+  },
+  {
     "title": "1151102-1104期中考夜點供應說明",
     "startDate": "2026/10/29",
     "endDate": "2027/02/28",
@@ -123,18 +141,6 @@
           "url": "http://elder.mcut.edu.tw/website1/upload/1150830%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e8%8f%9c%e5%96%ae.pdf"
         }
       ]
-    }
-  },
-  {
-    "title": "【總務處伙食團公告】第一飲食部115/8/31(一)至9/4(五)公休",
-    "startDate": "2026/08/24",
-    "endDate": "2027/01/31",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=972",
-    "detail": {
-      "title": "【總務處伙食團公告】第一飲食部115/8/31(一)至9/4(五)公休",
-      "content": "本校第一飲食部 (第一餐廳下方)業者因故，於115/8/31(一)至9/4(五)公休。",
-      "relatedUrl": "",
-      "attachments": []
     }
   }
 ]
