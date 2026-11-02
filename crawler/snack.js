@@ -64,13 +64,17 @@ const extractPdfWithTables = async (buffer) => {
 		if (tables.length > 0) {
 			const flatRows = tables.flatMap((t) => (Array.isArray(t) ? t : []))
 			const menuByDates = parseMenuByDates(flatRows)
-			return {
-				text: fullText.trim(),
-				tables,
-				rows: flatRows,
-				menuByDates,
-				numPages: result.pages?.length || 0
+			if (menuByDates.length > 0) {
+				return {
+					text: fullText.trim(),
+					tables,
+					rows: flatRows,
+					menuByDates,
+					numPages: result.pages?.length || 0
+				}
 			}
+			// getTable() 有時只抓到部分欄位（例如只有第一餐廳、沒有日期欄），解析不出日期就改用文字座標
+			console.log('表格裡找不到日期列，改用文字座標解析')
 		}
 
 		const positioned = await extractPdfToPositionedArray(buffer)
@@ -306,12 +310,14 @@ const processAnnouncement = async () => {
 	}
 
 	const pdfUrls = []
+	let parsedPdfCount = 0
 
 	for (const { attachments } of results) {
 		for (const att of attachments) {
 			if (att.error || !att.menuByDates) continue
-			if (att.url) pdfUrls.push(att.url)
+			parsedPdfCount++
 
+			let written = 0
 			for (const { date, menu } of att.menuByDates) {
 				if (!date) continue
 				if (menu.menu_1.length === 0 && menu.menu_2.length === 0) {
@@ -324,8 +330,18 @@ const processAnnouncement = async () => {
 				await fs.mkdir(dir, { recursive: true })
 				const filePath = path.join(dir, '4.json')
 				await fs.writeFile(filePath, JSON.stringify(menu))
+				written++
 			}
+
+			// 只把真的寫出檔案的 PDF 列進 PR body：body 不是空的，workflow 就會去複製 data/menu
+			if (written > 0) pdfUrls.push(att.url)
+			else console.warn(`⚠️  ${att.url} 解析不出任何一天的菜單`)
 		}
+	}
+
+	if (parsedPdfCount > 0 && pdfUrls.length === 0) {
+		console.error('有夜點供應 PDF，但一天的菜單都沒解析出來，請檢查 PDF 格式是不是改了')
+		process.exitCode = 1
 	}
 
 	const outPath = process.env.GITHUB_OUTPUT
@@ -347,6 +363,7 @@ if (require.main === module) {
 
 module.exports = {
 	fetchNightSnackAnnouncements,
+	extractPdfWithTables,
 	parseAnnouncementDetailAttachments,
 	itemsToPositionedArray,
 	toSlashDate,

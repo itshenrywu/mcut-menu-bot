@@ -4,6 +4,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const {
+	extractPdfWithTables,
 	parseAnnouncementDetailAttachments,
 	itemsToPositionedArray,
 	toSlashDate,
@@ -109,4 +110,37 @@ test('itemsToPositionedArray 依座標把文字分行分欄', () => {
 
 test('itemsToPositionedArray 對空輸入回傳空陣列', () => {
 	assert.deepStrictEqual(itemsToPositionedArray([]), [])
+})
+
+test('extractPdfWithTables 在 getTable() 只抓到部分欄位時改用文字座標解析', async () => {
+	// 1151102~1104 的宵夜菜單：getTable() 只抓到第一餐廳那一欄，沒有日期
+	const buffer = fs.readFileSync(path.join(__dirname, 'fixtures', 'snack-partial-table.pdf'))
+	const { menuByDates } = await extractPdfWithTables(buffer)
+
+	assert.deepStrictEqual(
+		menuByDates.map(({ dateStr, menu }) => ({ dateStr, menu })),
+		[
+			{
+				dateStr: '11月2日',
+				menu: {
+					menu_1: [{ type: '主食', foods: '肉燥米粉湯、小甜包子' }],
+					menu_2: [{ type: '主食', foods: '巧克力麵包、起司丁麵包、珍珠奶茶' }]
+				}
+			},
+			{
+				dateStr: '11月3日',
+				menu: {
+					menu_1: [{ type: '主食', foods: '肉羹麵線、小鮮肉包' }],
+					menu_2: [{ type: '主食', foods: '瑞士捲、蛋塔、冬瓜QQ' }]
+				}
+			},
+			{
+				dateStr: '11月4日',
+				menu: {
+					menu_1: [{ type: '主食', foods: '皮蛋瘦肉粥、小芝麻包' }],
+					menu_2: [{ type: '主食', foods: '蔥花捲、奶皇包、鹹粥' }]
+				}
+			}
+		]
+	)
 })
