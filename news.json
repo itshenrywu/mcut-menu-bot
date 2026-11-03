@@ -1,5 +1,41 @@
 [
   {
+    "title": "115年SGS伙食抽樣檢驗報告-2餐",
+    "startDate": "2026/11/02",
+    "endDate": "2027/11/01",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=982",
+    "detail": {
+      "title": "115年SGS伙食抽樣檢驗報告-2餐",
+      "content": "伙食團針對二家餐廳食用油米及水產動物等項目委請SGS台灣檢驗科技公司於115/10/12進行隨機抽檢，均符合衛生標準。 (第二餐廳)",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "115年SGS食材檢驗-2餐",
+          "url": "http://elder.mcut.edu.tw/website1/upload/115%e5%b9%b4SGS%e9%a3%9f%e6%9d%90%e6%aa%a2%e9%a9%97-2%e9%a4%90.7z"
+        }
+      ]
+    }
+  },
+  {
+    "title": "115年SGS伙食抽樣檢驗報告-1餐",
+    "startDate": "2026/11/02",
+    "endDate": "2027/11/01",
+    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=981",
+    "detail": {
+      "title": "115年SGS伙食抽樣檢驗報告-1餐",
+      "content": "伙食團針對二家餐廳食用油米及水產動物等項目委請SGS台灣檢驗科技公司於115/10/12進行隨機抽檢，均符合衛生標準。 (第一餐廳)",
+      "relatedUrl": "",
+      "attachments": [
+        {
+          "label": "檔案1下載",
+          "name": "115年SGS食材檢驗-1餐",
+          "url": "http://elder.mcut.edu.tw/website1/upload/115%e5%b9%b4SGS%e9%a3%9f%e6%9d%90%e6%aa%a2%e9%a9%97-1%e9%a4%90.7z"
+        }
+      ]
+    }
+  },
+  {
     "title": "115學年度第1學期學生退伙申請名單(115.10)",
     "startDate": "2026/10/30",
     "endDate": "2027/07/31",
@@ -103,42 +139,6 @@
           "label": "檔案1下載",
           "name": "學生退伙明細表-115學年度(上)-11509第一周",
           "url": "http://elder.mcut.edu.tw/website1/upload/%e5%ad%b8%e7%94%9f%e9%80%80%e4%bc%99%e6%98%8e%e7%b4%b0%e8%a1%a8-115%e5%ad%b8%e5%b9%b4%e5%ba%a6(%e4%b8%8a)-11509%e7%ac%ac%e4%b8%80%e5%91%a8.pdf"
-        }
-      ]
-    }
-  },
-  {
-    "title": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案",
-    "startDate": "2026/08/28",
-    "endDate": "2027/02/28",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=977",
-    "detail": {
-      "title": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案",
-      "content": "轉知教育部來函-有關中聯油脂公司油品事件之團體訴訟事宜一案，詳如附件公文及網址。",
-      "relatedUrl": "https://www.cpat.org.tw/page/news/show.aspx?num=32",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "中聯油脂案訴訟資訊宣導辦理情形公文",
-          "url": "http://elder.mcut.edu.tw/website1/upload/%e4%b8%ad%e8%81%af%e6%b2%b9%e8%84%82%e6%a1%88%e8%a8%b4%e8%a8%9f%e8%b3%87%e8%a8%8a%e5%ae%a3%e5%b0%8e%e8%be%a6%e7%90%86%e6%83%85%e5%bd%a2%e5%85%ac%e6%96%87.pdf"
-        }
-      ]
-    }
-  },
-  {
-    "title": "115.08.30(日)新生家長座談學生餐廳菜單",
-    "startDate": "2026/08/28",
-    "endDate": "2027/01/31",
-    "detailUrl": "http://elder.mcut.edu.tw/website1/index_post.aspx?id=973",
-    "detail": {
-      "title": "115.08.30(日)新生家長座談學生餐廳菜單",
-      "content": "115.08.30(日)新生家長座談兩家學生餐廳皆開放用餐，用餐時間如下: 午餐:11:00-13:00 晚餐:16:30-18:30 當日菜單如附。",
-      "relatedUrl": "",
-      "attachments": [
-        {
-          "label": "檔案1下載",
-          "name": "1150830學生餐廳菜單",
-          "url": "http://elder.mcut.edu.tw/website1/upload/1150830%e5%ad%b8%e7%94%9f%e9%a4%90%e5%bb%b3%e8%8f%9c%e5%96%ae.pdf"
         }
       ]
     }
